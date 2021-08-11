@@ -1,1 +1,1 @@
-# gtv-nft-manager
+# gtv-smart-contracts
