@@ -1,5 +1,5 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../../contracts/GametvNFT.cdc"
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import GametvNFT from "../contracts/GametvNFT.cdc"
 
 // This transaction configures an account to hold Kitty Items.
 

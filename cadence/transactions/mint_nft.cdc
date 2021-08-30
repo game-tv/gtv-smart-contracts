@@ -1,12 +1,12 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../../contracts/GametvNFT.cdc"
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import GametvNFT from "../contracts/GametvNFT.cdc"
 
 // This transction uses the NFTMinter resource to mint a new NFT.
 //
 // It must be run with the account that has the minter resource
 // stored at path /storage/NFTMinter.
 
-transaction(recipient: Address, typeID: String) {
+transaction(metadata: {String: AnyStruct}, recipient: Address, typeID: String) {
     
     // local variable for storing the minter reference
     let minter: &GametvNFT.NFTMinter
@@ -29,6 +29,6 @@ transaction(recipient: Address, typeID: String) {
             ?? panic("Could not get receiver reference to the NFT Collection")
 
         // mint the NFT and deposit it to the recipient's collection
-        self.minter.mintNFT(recipient: receiver, typeId: typeID)
+        self.minter.mintNFT(recipient: receiver, typeId: typeID, metaData: metadata)
     }
 }

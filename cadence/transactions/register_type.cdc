@@ -1,12 +1,12 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../../contracts/GametvNFT.cdc"
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import GametvNFT from "../contracts/GametvNFT.cdc"
 
 // This transction uses the NFTMinter resource to register a NFT type.
 //
 // It must be run with the account that has the minter resource
 // stored at path /storage/NFTMinter.
 
-transaction(metadata: {String : AnyStruct}, typeID: String, maxCount: UInt64) {
+transaction(typeID: String, maxCount: UInt64) {
     // local variable for storing the minter reference
     let minter: &GametvNFT.NFTMinter
 
@@ -18,6 +18,6 @@ transaction(metadata: {String : AnyStruct}, typeID: String, maxCount: UInt64) {
     }
 
     execute {
-        self.minter.registerType(metaData: metadata, typeId: typeID, maxCount: maxCount)
+        self.minter.registerType(typeId: typeID, maxCount: maxCount)
     }
 }

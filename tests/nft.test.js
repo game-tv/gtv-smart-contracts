@@ -58,7 +58,8 @@ describe("Contract tests", () => {
 
 		await shallPass(registerType(itemIdToMint, maxCount));
 		const typeDetails = await getNftTypeDetails(Admin, itemIdToMint);
-		expect(typeDetails.test).toBe("test1");
+		expect(typeDetails.typeId).toBe(itemIdToMint);
+		expect(typeDetails.maxCount).toBe(maxCount);
 		await shallPass(mintAlreadyRegisteredNFT(itemIdToMint, Alice))
 
 		await shallResolve(async () => {
@@ -66,7 +67,7 @@ describe("Contract tests", () => {
 			expect(nftCount).toBe(1);
 
 			const metadata = await getGametvNFTById(Alice, 0);
-			expect(metadata.maxCount).toBe(4);
+			expect(metadata.maxCount).toBe(maxCount);
 			expect(metadata.test).toBe("test1");
 			expect(metadata.copyNumber).toBe(1);
 		});

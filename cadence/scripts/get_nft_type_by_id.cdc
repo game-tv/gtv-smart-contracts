@@ -1,9 +1,9 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../../contracts/GametvNFT.cdc"
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import GametvNFT from "../contracts/GametvNFT.cdc"
 
 // This script returns the metadata for an NFT in an account's collection.
 
-pub fun main(address: Address, itemID: String): {String: AnyStruct} {
+pub fun main(address: Address, itemID: String): AnyStruct {
 
     // get the public account object for the token owner
     let owner = getAccount(address)
@@ -16,5 +16,5 @@ pub fun main(address: Address, itemID: String): {String: AnyStruct} {
     let gametvNftType = nftTypeHelper.borrowNFTtype(id: itemID)
         ?? panic("No such itemID in that collection")
 
-    return gametvNftType.metaData
+    return gametvNftType
 }

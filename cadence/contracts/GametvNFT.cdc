@@ -8,6 +8,8 @@ pub contract GametvNFT: NonFungibleToken {
     pub event Withdraw(id: UInt64, from: Address?)
     pub event Deposit(id: UInt64, to: Address?)
     pub event Minted(id: UInt64, typeId: String)
+    pub event TypeRegistered(typeId: String)
+    pub event TypeMoved(typeId: String)
 
     // Named Paths
     pub let CollectionStoragePath: StoragePath
@@ -20,11 +22,11 @@ pub contract GametvNFT: NonFungibleToken {
     // The total number of GametvNFTs that have been minted
     pub var totalSupply: UInt64
     
-    // NFT type schema
+    // NFT type
+    // It is used to keep a check on the current NFTs minted and the total number of NFTs that can be minted
+    // for a given type
     pub struct NftType {
         pub let typeId : String
-
-        pub var metaData : {String : AnyStruct}
 
         pub var currentCount : UInt64
 
@@ -34,27 +36,24 @@ pub contract GametvNFT: NonFungibleToken {
             self.currentCount = count
         }
 
-        init(typeId: String, maxCount: UInt64, metadata: {String : AnyStruct}) {
-            pre {
-                metadata.length != 0: "metadata cannot be empty"
-            }
+        init(typeId: String, maxCount: UInt64) {
 
-            if (GametvNFT.nftTypes.keys.contains(typeId)) {
+            if (GametvNFT.activeNftTypes.keys.contains(typeId)) {
                 panic("Type is already registered")
             }
-
-            let metaData = metadata
 
             self.typeId = typeId
             self.maxCount = maxCount
             self.currentCount = 0
 
-            self.metaData = metaData
         }
     }
 
-    // NFT types registered
-    pub var nftTypes: {String : NftType}
+    // NFT types registered which can be minted
+    pub var activeNftTypes: {String : NftType}
+
+    // NFT types registered which have reached the max limit for minting
+    pub var historicNftTypes: {String : NftType}
 
 
     // NFT
@@ -98,7 +97,6 @@ pub contract GametvNFT: NonFungibleToken {
                     "Cannot borrow NftType reference: The ID of the returned reference is incorrect"
             }
         }
-
     }
 
     // Collection
@@ -183,8 +181,17 @@ pub contract GametvNFT: NonFungibleToken {
     pub resource NftTypeHelper : NftTypeHelperPublic {
         // public function to borrow details of NFTtype
         pub fun borrowNFTtype(id: String): NftType? {
-            if GametvNFT.nftTypes[id] != nil {
-                let ref = GametvNFT.nftTypes[id]
+            if GametvNFT.activeNftTypes[id] != nil {
+                let ref = GametvNFT.activeNftTypes[id]
+                return ref
+            } else {
+                return nil
+            }
+        }
+
+        pub fun borrowStaleNFTtype(id: String): NftType? {
+            if GametvNFT.historicNftTypes[id] != nil {
+                let ref = GametvNFT.historicNftTypes[id]
                 return ref
             } else {
                 return nil
@@ -200,19 +207,17 @@ pub contract GametvNFT: NonFungibleToken {
 	    // mintNFT
         // Mints a new NFT with a new ID
 		// and deposit it in the recipients collection using their collection reference
-        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, typeId: String) {
+        pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, typeId: String, metaData: {String : AnyStruct}) {
 
-            if (!GametvNFT.nftTypes.keys.contains(typeId)) {
+            if (!GametvNFT.activeNftTypes.keys.contains(typeId)) {
                 panic("Invalid typeId")
             }
-            let nftType = GametvNFT.nftTypes[typeId]!
+            let nftType = GametvNFT.activeNftTypes[typeId]!
             let currentCount = nftType.currentCount
 
             if (currentCount >= nftType.maxCount) {
                 panic("NFT mint limit exceeded")
             }
-
-            let metaData = nftType.metaData;
 
             let updateCount = currentCount + (1 as UInt64);
 
@@ -226,7 +231,14 @@ pub contract GametvNFT: NonFungibleToken {
 
             // Increment count for NFT of particular type
             nftType.updateCount(count: updateCount)
-            GametvNFT.nftTypes[typeId] = nftType
+
+            if (updateCount < nftType.maxCount) {
+                GametvNFT.activeNftTypes[typeId] = nftType
+            } else {
+                GametvNFT.historicNftTypes[typeId] = nftType
+                GametvNFT.activeNftTypes.remove(key: typeId)
+                emit TypeMoved(typeId: typeId)
+            }
 
             // Increment total supply of NFTs
             GametvNFT.totalSupply = GametvNFT.totalSupply + (1 as UInt64)
@@ -235,12 +247,10 @@ pub contract GametvNFT: NonFungibleToken {
             emit Minted(id: GametvNFT.totalSupply, typeId: typeId)
         }
 
-        pub fun registerType(metaData : {String : AnyStruct}, typeId: String, maxCount: UInt64) {
-            if GametvNFT.nftTypes.keys.contains(typeId) {
-                panic("TypeId already exists")
-            }
-            let nftType = NftType(typeId: typeId, maxCount: maxCount, metadata: metaData)
-            GametvNFT.nftTypes[typeId] = nftType
+        pub fun registerType(typeId: String, maxCount: UInt64) {
+            let nftType = NftType(typeId: typeId, maxCount: maxCount)
+            GametvNFT.activeNftTypes[typeId] = nftType
+            emit TypeRegistered(typeId: typeId)
         }
 	}
 
@@ -271,8 +281,11 @@ pub contract GametvNFT: NonFungibleToken {
         // Initialize the total supply
         self.totalSupply = 0
 
-        // Initialize the NFT types
-        self.nftTypes = {}
+        // Initialize active NFT types
+        self.activeNftTypes = {}
+
+        // Initialize historic NFT types
+        self.historicNftTypes = {}
 
         // Create a Minter resource and save it to storage
         let minter <- create NFTMinter()
