@@ -97,6 +97,13 @@ pub contract GametvNFT: NonFungibleToken {
                     "Cannot borrow NftType reference: The ID of the returned reference is incorrect"
             }
         }
+
+        pub fun borrowStaleNFTtype(id: String): NftType? {
+            post {
+                (result == nil) || (result?.typeId == id):
+                    "Cannot borrow NftType reference: The ID of the returned reference is incorrect"
+            }
+        }
     }
 
     // Collection
