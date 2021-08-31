@@ -98,7 +98,7 @@ pub contract GametvNFT: NonFungibleToken {
             }
         }
 
-        pub fun borrowStaleNFTtype(id: String): NftType? {
+        pub fun borrowHistoricNFTtype(id: String): NftType? {
             post {
                 (result == nil) || (result?.typeId == id):
                     "Cannot borrow NftType reference: The ID of the returned reference is incorrect"
@@ -196,7 +196,7 @@ pub contract GametvNFT: NonFungibleToken {
             }
         }
 
-        pub fun borrowStaleNFTtype(id: String): NftType? {
+        pub fun borrowHistoricNFTtype(id: String): NftType? {
             if GametvNFT.historicNftTypes[id] != nil {
                 let ref = GametvNFT.historicNftTypes[id]
                 return ref

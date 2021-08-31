@@ -13,7 +13,7 @@ pub fun main(address: Address, itemID: String): AnyStruct {
         ?? panic("Could not borrow NFTtypePublic")
 
     // borrow a reference to a specific NFT in the collection
-    let gametvNftType = nftTypeHelper.borrowStaleNFTtype(id: itemID)
+    let gametvNftType = nftTypeHelper.borrowHistoricNFTtype(id: itemID)
         ?? panic("No such itemID in that collection")
 
     return gametvNftType
