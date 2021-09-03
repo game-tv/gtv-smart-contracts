@@ -1,5 +1,5 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../../contracts/GametvNFT.cdc"
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import GametvNFT from "../contracts/GametvNFT.cdc"
 
 // This script returns the metadata for an NFT in an account's collection.
 
@@ -16,5 +16,5 @@ pub fun main(address: Address, itemID: UInt64): {String: AnyStruct} {
     let gametvNFT = collectionBorrow.borrowGametvNFT(id: itemID)
         ?? panic("No such itemID in that collection")
 
-    return gametvNFT.metadata
+    return gametvNFT.getMetadata()
 }

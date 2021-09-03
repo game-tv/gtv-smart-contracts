@@ -1,5 +1,6 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../../contracts/GametvNFT.cdc"
+  
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import GametvNFT from "../contracts/GametvNFT.cdc"
 
 // This transaction transfers a Gametv NFT from one account to another.
 

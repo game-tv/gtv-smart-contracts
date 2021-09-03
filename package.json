@@ -1,21 +1,16 @@
+  
 {
-  "name": "kitty-items-cadence-testing",
+  "name": "gtv-cadence-testing",
   "version": "0.0.1",
-  "description": "Integration tests for Kitty Items using Flow JS Testing Framework",
+  "description": "Integration tests for Gametv smart contracts using Flow JS Testing Framework",
   "main": "index.js",
   "scripts": {
     "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onflow/kitty-items.git"
+    "url": "git@github.com:game-tv/gtv-smart-contracts.git"
   },
-  "author": "Max Daunarovich",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/onflow/kitty-items/issues"
-  },
-  "homepage": "https://github.com/onflow/kitty-items#readme",
   "devDependencies": {
     "@babel/core": "^7.14.0",
     "@babel/preset-env": "^7.14.1",
