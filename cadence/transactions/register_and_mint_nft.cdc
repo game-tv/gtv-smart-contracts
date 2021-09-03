@@ -1,5 +1,5 @@
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../../contracts/GametvNFT.cdc"
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import GametvNFT from "../contracts/GametvNFT.cdc"
 
 // This transction uses the NFTMinter resource to register and mint a new NFT.
 //
@@ -28,9 +28,9 @@ transaction(metadata: {String : AnyStruct}, recipient: Address, typeID: String, 
             .borrow<&{NonFungibleToken.CollectionPublic}>()
             ?? panic("Could not get receiver reference to the NFT Collection")
           
-        self.minter.registerType(metaData: metadata, typeId: typeID, maxCount: maxCount)
+        self.minter.registerType(typeId: typeID, maxCount: maxCount)
 
         // mint the NFT and deposit it to the recipient's collection
-        self.minter.mintNFT(recipient: receiver, typeId: typeID)
+        self.minter.mintNFT(recipient: receiver, typeId: typeID, metaData: metadata)
     }
 }

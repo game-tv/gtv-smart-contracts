@@ -1,7 +1,7 @@
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import GametvNFT from "../contracts/GametvNFT.cdc"
 
-// This script returns the data for an NFT in an account's collection.
+// This script returns the data for a historic NFT type.
 
 pub fun main(address: Address, itemID: String): AnyStruct {
 
@@ -13,7 +13,7 @@ pub fun main(address: Address, itemID: String): AnyStruct {
         ?? panic("Could not borrow NFTtypePublic")
 
     // borrow a reference to a specific NFT in the collection
-    let gametvNftType = nftTypeHelper.borrowNFTtype(id: itemID)
+    let gametvNftType = nftTypeHelper.borrowHistoricNFTtype(id: itemID)
         ?? panic("No such itemID in that collection")
 
     return gametvNftType

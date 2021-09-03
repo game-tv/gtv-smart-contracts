@@ -64,21 +64,10 @@ export const registerType = async (itemType, maxCount) => {
 	const GametvAdmin = await getGametvAdminAddress();
 
 	const name = "register_type";
-  const metadata = [
-    [
-      {key: "test", value: "test1"}
-    ],
-    t.Dictionary({key: t.String, value: t.String})
-  ]
-
-
-	const args = [metadata, [itemType, t.String], [maxCount, t.UInt64]];
+	const args = [[itemType, t.String], [maxCount, t.UInt64]];
 	const signers = [GametvAdmin];
 
 	return sendTransaction({ name, args, signers });
-
-
-
 };
 
 /*
@@ -91,8 +80,15 @@ export const registerType = async (itemType, maxCount) => {
 export const mintAlreadyRegisteredNFT = async (itemType, recipient) => {
 	const GametvAdmin = await getGametvAdminAddress();
 
+	const metadata = [
+    [
+      {key: "test", value: "test1"}
+    ],
+    t.Dictionary({key: t.String, value: t.String})
+  ]
+
 	const name = "mint_nft";
-	const args = [recipient, itemType];
+	const args = [metadata, [recipient, t.Address], [itemType, t.String]];
 	const signers = [GametvAdmin];
 
 	return sendTransaction({ name, args, signers });
@@ -150,6 +146,21 @@ export const getCollectionLength = async (account) => {
  * */
 export const getNftTypeDetails = async (account, typeId) => {
 	const name = "get_nft_type_by_id";
+	const args = [account, typeId];
+
+	return executeScript({ name, args });
+}
+
+
+/*
+ * Returns the details of given historic NftType
+ * @param {string} account - account address
+ * @param {string} typeId - typeId of NFT
+ * @throws Will throw an error if execution will be halted
+ * @returns {String : AnyStruct}
+ * */
+export const getHistoricNftTypeDetails = async (account, typeId) => {
+	const name = "get_historic_nft_type_by_id";
 	const args = [account, typeId];
 
 	return executeScript({ name, args });
