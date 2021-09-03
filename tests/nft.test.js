@@ -1,3 +1,4 @@
+
 import path from "path";
 import { emulator, init, getAccountAddress, shallPass, shallResolve, shallRevert } from "flow-js-testing";
 import {
@@ -12,7 +13,8 @@ import {
   getGametvAdminAddress,
 	mintAlreadyRegisteredNFT,
 	registerType,
-	getNftTypeDetails
+	getNftTypeDetails,
+	getHistoricNftTypeDetails
 } from "../helpers/gametv-nft";
 import { expect } from "@jest/globals";
 
@@ -58,7 +60,9 @@ describe("Contract tests", () => {
 
 		await shallPass(registerType(itemIdToMint, maxCount));
 		const typeDetails = await getNftTypeDetails(Admin, itemIdToMint);
-		expect(typeDetails.test).toBe("test1");
+		expect(typeDetails.typeId).toBe(itemIdToMint);
+		expect(typeDetails.maxCount).toBe(maxCount);
+		expect(typeDetails.currentCount).toBe(0);
 		await shallPass(mintAlreadyRegisteredNFT(itemIdToMint, Alice))
 
 		await shallResolve(async () => {
@@ -66,7 +70,7 @@ describe("Contract tests", () => {
 			expect(nftCount).toBe(1);
 
 			const metadata = await getGametvNFTById(Alice, 0);
-			expect(metadata.maxCount).toBe(4);
+			expect(metadata.maxCount).toBe(maxCount);
 			expect(metadata.test).toBe("test1");
 			expect(metadata.copyNumber).toBe(1);
 		});
@@ -150,5 +154,40 @@ describe("Contract tests", () => {
 		await shallPass(registerType(typeID2, maxCount));
 
 		await shallRevert(registerType(typeID2, maxCount));
+	})
+
+	it("should be able to get details of an active and historic NFT", async () => {
+		await deployGametvNFT();
+		const maxCount = 2;
+
+		const Admin = await getGametvAdminAddress();
+
+
+		await shallPass(registerType(typeID1, maxCount));
+
+		let typeDetails = await getNftTypeDetails(Admin, typeID1);
+		expect(typeDetails.typeId).toBe(typeID1);
+		expect(typeDetails.maxCount).toBe(maxCount);
+		expect(typeDetails.currentCount).toBe(0);
+
+		const Alice = await getAccountAddress("Alice");
+		await setupGametvNFTOnAccount(Alice);
+
+		await shallPass(mintAlreadyRegisteredNFT(typeID1, Alice))
+
+		typeDetails = await getNftTypeDetails(Admin, typeID1);
+		expect(typeDetails.typeId).toBe(typeID1);
+		expect(typeDetails.maxCount).toBe(maxCount);
+		expect(typeDetails.currentCount).toBe(1);
+
+		await shallPass(mintAlreadyRegisteredNFT(typeID1, Alice))
+
+		await shallRevert(getNftTypeDetails(Admin, typeID1));
+
+		typeDetails = await getHistoricNftTypeDetails(Admin, typeID1);
+		expect(typeDetails.typeId).toBe(typeID1);
+		expect(typeDetails.maxCount).toBe(maxCount);
+		expect(typeDetails.currentCount).toBe(2);
+
 	})
  })
