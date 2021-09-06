@@ -252,11 +252,11 @@ pub contract GametvNFT: NonFungibleToken {
                 emit TypeSoldOut(typeId: typeId)
             }
 
-            // Increment total supply of NFTs
-            GametvNFT.totalSupply = GametvNFT.totalSupply + (1 as UInt64)
-
             // emit event
             emit Minted(id: GametvNFT.totalSupply, typeId: typeId)
+
+            // Increment total supply of NFTs
+            GametvNFT.totalSupply = GametvNFT.totalSupply + (1 as UInt64)
         }
 
         pub fun registerType(typeId: String, maxCount: UInt64) {
