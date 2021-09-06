@@ -1,8 +1,8 @@
   
 {
-  "name": "gtv-cadence-testing",
+  "name": "nowgg-cadence-testing",
   "version": "0.0.1",
-  "description": "Integration tests for Gametv smart contracts using Flow JS Testing Framework",
+  "description": "Integration tests for Nowgg smart contracts using Flow JS Testing Framework",
   "main": "index.js",
   "scripts": {
     "test": "jest"

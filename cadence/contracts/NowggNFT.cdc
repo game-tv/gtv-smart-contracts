@@ -1,7 +1,7 @@
 import NonFungibleToken from "./NonFungibleToken.cdc"
 
 
-pub contract GametvNFT: NonFungibleToken {
+pub contract NowggNFT: NonFungibleToken {
 
     // Events
     pub event ContractInitialized()
@@ -19,7 +19,7 @@ pub contract GametvNFT: NonFungibleToken {
     pub let NFTtypeHelperPublicPath: PublicPath
 
     // totalSupply
-    // The total number of GametvNFTs that have been minted
+    // The total number of NowggNFTs that have been minted
     pub var totalSupply: UInt64
     
     // NFT type
@@ -38,7 +38,7 @@ pub contract GametvNFT: NonFungibleToken {
 
         init(typeId: String, maxCount: UInt64) {
 
-            if (GametvNFT.activeNftTypes.keys.contains(typeId)) {
+            if (NowggNFT.activeNftTypes.keys.contains(typeId)) {
                 panic("Type is already registered")
             }
 
@@ -75,19 +75,19 @@ pub contract GametvNFT: NonFungibleToken {
         }
     }
 
-    // This is the interface that users can cast their GametvNFTs Collection as
-    // to allow others to deposit GametvNFTs into their Collection. It also allows for reading
-    // the details of GametvNFTs in the Collection.
-    pub resource interface GametvNFTCollectionPublic {
+    // This is the interface that users can cast their NowggNFTs Collection as
+    // to allow others to deposit NowggNFTs into their Collection. It also allows for reading
+    // the details of NowggNFTs in the Collection.
+    pub resource interface NowggNFTCollectionPublic {
         pub fun deposit(token: @NonFungibleToken.NFT)
         pub fun getIDs(): [UInt64]
         pub fun borrowNFT(id: UInt64): &NonFungibleToken.NFT
-        pub fun borrowGametvNFT(id: UInt64): &GametvNFT.NFT? {
+        pub fun borrowNowggNFT(id: UInt64): &NowggNFT.NFT? {
             // If the result isn't nil, the id of the returned reference
             // should be the same as the argument to the function
             post {
                 (result == nil) || (result?.id == id):
-                    "Cannot borrow GametvNFT reference: The ID of the returned reference is incorrect"
+                    "Cannot borrow NowggNFT reference: The ID of the returned reference is incorrect"
             }
         }
     }
@@ -112,8 +112,8 @@ pub contract GametvNFT: NonFungibleToken {
     }
 
     // Collection
-    // A collection of GametvItem NFTs owned by an account
-    pub resource Collection: GametvNFTCollectionPublic, NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
+    // A collection of NowggItem NFTs owned by an account
+    pub resource Collection: NowggNFTCollectionPublic, NonFungibleToken.Provider, NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic {
         // dictionary of NFT conforming tokens
         // NFT is a resource type with an `UInt64` ID field
         pub var ownedNFTs: @{UInt64: NonFungibleToken.NFT}
@@ -132,7 +132,7 @@ pub contract GametvNFT: NonFungibleToken {
         // Takes a NFT and adds it to the collections dictionary
         // and adds the ID to the id array
         pub fun deposit(token: @NonFungibleToken.NFT) {
-            let token <- token as! @GametvNFT.NFT
+            let token <- token as! @NowggNFT.NFT
 
             let id: UInt64 = token.id
 
@@ -157,14 +157,14 @@ pub contract GametvNFT: NonFungibleToken {
             return &self.ownedNFTs[id] as &NonFungibleToken.NFT
         }
 
-        // borrowGametvNFT
-        // Gets a reference to an NFT in the collection as a GametvItem,
+        // borrowNowggNFT
+        // Gets a reference to an NFT in the collection as a NowggItem,
         // exposing all of its fields (including the typeID).
-        // This is safe as there are no functions that can be called on the GametvItem.
-        pub fun borrowGametvNFT(id: UInt64): &GametvNFT.NFT? {
+        // This is safe as there are no functions that can be called on the NowggItem.
+        pub fun borrowNowggNFT(id: UInt64): &NowggNFT.NFT? {
             if self.ownedNFTs[id] != nil {
                 let ref = &self.ownedNFTs[id] as auth &NonFungibleToken.NFT
-                return ref as! &GametvNFT.NFT
+                return ref as! &NowggNFT.NFT
             } else {
                 return nil
             }
@@ -193,8 +193,8 @@ pub contract GametvNFT: NonFungibleToken {
     pub resource NftTypeHelper : NftTypeHelperPublic {
         // public function to borrow details of NFTtype
         pub fun borrowActiveNFTtype(id: String): NftType? {
-            if GametvNFT.activeNftTypes[id] != nil {
-                let ref = GametvNFT.activeNftTypes[id]
+            if NowggNFT.activeNftTypes[id] != nil {
+                let ref = NowggNFT.activeNftTypes[id]
                 return ref
             } else {
                 return nil
@@ -202,8 +202,8 @@ pub contract GametvNFT: NonFungibleToken {
         }
 
         pub fun borrowHistoricNFTtype(id: String): NftType? {
-            if GametvNFT.historicNftTypes[id] != nil {
-                let ref = GametvNFT.historicNftTypes[id]
+            if NowggNFT.historicNftTypes[id] != nil {
+                let ref = NowggNFT.historicNftTypes[id]
                 return ref
             } else {
                 return nil
@@ -221,10 +221,10 @@ pub contract GametvNFT: NonFungibleToken {
 		// and deposit it in the recipients collection using their collection reference
         pub fun mintNFT(recipient: &{NonFungibleToken.CollectionPublic}, typeId: String, metaData: {String: AnyStruct}) {
 
-            if (!GametvNFT.activeNftTypes.keys.contains(typeId)) {
+            if (!NowggNFT.activeNftTypes.keys.contains(typeId)) {
                 panic("Invalid typeId")
             }
-            let nftType = GametvNFT.activeNftTypes[typeId]!
+            let nftType = NowggNFT.activeNftTypes[typeId]!
             let currentCount = nftType.currentCount
 
             if (currentCount >= nftType.maxCount) {
@@ -239,56 +239,56 @@ pub contract GametvNFT: NonFungibleToken {
             metaData["maxCount"] = nftType.maxCount;
             
             // Create and deposit NFT in recipent's account
-            recipient.deposit(token: <-create GametvNFT.NFT(initID: GametvNFT.totalSupply, metadata: metaData))
+            recipient.deposit(token: <-create NowggNFT.NFT(initID: NowggNFT.totalSupply, metadata: metaData))
 
             // Increment count for NFT of particular type
             nftType.updateCount(count: updateCount)
 
             if (updateCount < nftType.maxCount) {
-                GametvNFT.activeNftTypes[typeId] = nftType
+                NowggNFT.activeNftTypes[typeId] = nftType
             } else {
-                GametvNFT.historicNftTypes[typeId] = nftType
-                GametvNFT.activeNftTypes.remove(key: typeId)
+                NowggNFT.historicNftTypes[typeId] = nftType
+                NowggNFT.activeNftTypes.remove(key: typeId)
                 emit TypeSoldOut(typeId: typeId)
             }
 
             // emit event
-            emit Minted(id: GametvNFT.totalSupply, typeId: typeId)
+            emit Minted(id: NowggNFT.totalSupply, typeId: typeId)
 
             // Increment total supply of NFTs
-            GametvNFT.totalSupply = GametvNFT.totalSupply + (1 as UInt64)
+            NowggNFT.totalSupply = NowggNFT.totalSupply + (1 as UInt64)
         }
 
         pub fun registerType(typeId: String, maxCount: UInt64) {
             let nftType = NftType(typeId: typeId, maxCount: maxCount)
-            GametvNFT.activeNftTypes[typeId] = nftType
+            NowggNFT.activeNftTypes[typeId] = nftType
             emit TypeRegistered(typeId: typeId)
         }
 	}
 
     // fetch
-    // Get a reference to a GametvNFT from an account's Collection, if available.
-    // If an account does not have a GametvNFT.Collection, panic.
+    // Get a reference to a NowggNFT from an account's Collection, if available.
+    // If an account does not have a NowggNFT.Collection, panic.
     // If it has a collection but does not contain the itemID, return nil.
     // If it has a collection and that collection contains the itemID, return a reference to that.
-    pub fun borrowNFT(from: Address, itemID: UInt64): &GametvNFT.NFT? {
+    pub fun borrowNFT(from: Address, itemID: UInt64): &NowggNFT.NFT? {
         let collection = getAccount(from)
-            .getCapability(GametvNFT.CollectionPublicPath)!
-            .borrow<&GametvNFT.Collection{GametvNFT.GametvNFTCollectionPublic}>()
+            .getCapability(NowggNFT.CollectionPublicPath)!
+            .borrow<&NowggNFT.Collection{NowggNFT.NowggNFTCollectionPublic}>()
             ?? panic("Couldn't get collection")
-        // We trust GametvNFT.Collection.borrowGametvNFT to get the correct itemID
+        // We trust NowggNFT.Collection.borrowNowggNFT to get the correct itemID
         // (it checks it before returning it).
-        return collection.borrowGametvNFT(id: itemID)
+        return collection.borrowNowggNFT(id: itemID)
     }
 
     // initializer
 	init() {
         // Set our named paths
-        self.CollectionStoragePath = /storage/GametvNFTsCollection
-        self.CollectionPublicPath = /public/GametvNFTsCollection
-        self.MinterStoragePath = /storage/GametvNFTMinter
-        self.NftTypeHelperStoragePath = /storage/GametvNftTypeHelperStoragePath
-        self.NFTtypeHelperPublicPath = /public/GametvNftNFTtypeHelperPublicPath
+        self.CollectionStoragePath = /storage/NowggNFTsCollection
+        self.CollectionPublicPath = /public/NowggNFTsCollection
+        self.MinterStoragePath = /storage/NowggNFTMinter
+        self.NftTypeHelperStoragePath = /storage/NowggNftTypeHelperStoragePath
+        self.NFTtypeHelperPublicPath = /public/NowggNftNFTtypeHelperPublicPath
 
         // Initialize the total supply
         self.totalSupply = 0
@@ -307,7 +307,7 @@ pub contract GametvNFT: NonFungibleToken {
         let emptyCollection <- self.createEmptyCollection()
         self.account.save(<-emptyCollection, to: self.CollectionStoragePath)
         self.account.unlink(self.CollectionPublicPath)
-        self.account.link<&GametvNFT.Collection{NonFungibleToken.CollectionPublic, GametvNFT.GametvNFTCollectionPublic}>(
+        self.account.link<&NowggNFT.Collection{NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>(
             self.CollectionPublicPath, target: self.CollectionStoragePath
         )
 
@@ -315,7 +315,7 @@ pub contract GametvNFT: NonFungibleToken {
         let nftTypehelper <- create NftTypeHelper()
         self.account.save(<-nftTypehelper, to: self.NftTypeHelperStoragePath)
         self.account.unlink(self.NFTtypeHelperPublicPath)
-        self.account.link<&GametvNFT.NftTypeHelper{GametvNFT.NftTypeHelperPublic}>(
+        self.account.link<&NowggNFT.NftTypeHelper{NowggNFT.NftTypeHelperPublic}>(
             self.NFTtypeHelperPublicPath, target: self.NftTypeHelperStoragePath
         )
 

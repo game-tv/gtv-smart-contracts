@@ -7,34 +7,34 @@ const UFIX64_PRECISION = 8;
 // UFix64 values shall be always passed as strings
 export const toUFix64 = (value) => value.toFixed(UFIX64_PRECISION);
 
-export const getGametvAdminAddress = async () => getAccountAddress("GametvAdmin");
+export const getNowggAdminAddress = async () => getAccountAddress("NowggAdmin");
 
 // 
 export const typeID1 = "1000";
 export const typeID2 = "2000";
 
 /*
- * Deploys NonFungibleToken and GametvNFT contracts to Gametvadmin.
+ * Deploys NonFungibleToken and NowggNFT contracts to Nowggadmin.
  * @throws Will throw an error if transaction is reverted.
  * @returns {Promise<*>}
  * */
-export const deployGametvNFT = async () => {
-	const GametvAdmin = await getGametvAdminAddress();
-	await mintFlow(GametvAdmin, "10.0");
+export const deployNowggNFT = async () => {
+	const NowggAdmin = await getNowggAdminAddress();
+	await mintFlow(NowggAdmin, "10.0");
 
-	await deployContractByName({ to: GametvAdmin, name: "NonFungibleToken" });
+	await deployContractByName({ to: NowggAdmin, name: "NonFungibleToken" });
 
-	const addressMap = { NonFungibleToken: GametvAdmin };
-	return deployContractByName({ to: GametvAdmin, name: "GametvNFT", addressMap });
+	const addressMap = { NonFungibleToken: NowggAdmin };
+	return deployContractByName({ to: NowggAdmin, name: "NowggNFT", addressMap });
 };
 
 /*
- * Setups GametvNFT collection on account and exposes public capability.
+ * Setups NowggNFT collection on account and exposes public capability.
  * @param {string} account - account address
  * @throws Will throw an error if transaction is reverted.
  * @returns {Promise<*>}
  * */
-export const setupGametvNFTOnAccount = async (account) => {
+export const setupNowggNFTOnAccount = async (account) => {
 	const name = "setup_account";
 	const signers = [account];
 
@@ -42,18 +42,18 @@ export const setupGametvNFTOnAccount = async (account) => {
 };
 
 /*
- * Returns GametvNFTs supply.
+ * Returns NowggNFTs supply.
  * @throws Will throw an error if execution will be halted
  * @returns {UInt64} - number of NFT minted so far
  * */
-export const getGametvNFTSupply = async () => {
-	const name = "get_gametv_items_supply";
+export const getNowggNFTSupply = async () => {
+	const name = "get_nowgg_items_supply";
 
 	return executeScript({ name });
 };
 
 /*
- * Mints GametvNFT of a specific **itemType** and sends it to **recipient**.
+ * Mints NowggNFT of a specific **itemType** and sends it to **recipient**.
  * @param {string} itemType - type of NFT to mint
  * @param {string} recipient - recipient account address
  * @param {UInt64} maxCount - max count of nfts
@@ -61,24 +61,24 @@ export const getGametvNFTSupply = async () => {
  * @returns {Promise<*>}
  * */
 export const registerType = async (itemType, maxCount) => {
-	const GametvAdmin = await getGametvAdminAddress();
+	const NowggAdmin = await getNowggAdminAddress();
 
 	const name = "register_type";
 	const args = [[itemType, t.String], [maxCount, t.UInt64]];
-	const signers = [GametvAdmin];
+	const signers = [NowggAdmin];
 
 	return sendTransaction({ name, args, signers });
 };
 
 /*
- * Mints GametvNFT of a specific **itemType** and sends it to **recipient**.
+ * Mints NowggNFT of a specific **itemType** and sends it to **recipient**.
  * @param {string} itemType - type of NFT to mint
  * @param {string} recipient - recipient account address
  * @throws Will throw an error if execution will be halted
  * @returns {Promise<*>}
  * */
 export const mintAlreadyRegisteredNFT = async (itemType, recipient) => {
-	const GametvAdmin = await getGametvAdminAddress();
+	const NowggAdmin = await getNowggAdminAddress();
 
 	const metadata = [
     [
@@ -89,21 +89,21 @@ export const mintAlreadyRegisteredNFT = async (itemType, recipient) => {
 
 	const name = "mint_nft";
 	const args = [[recipient, t.Address], [itemType, t.String], metadata];
-	const signers = [GametvAdmin];
+	const signers = [NowggAdmin];
 
 	return sendTransaction({ name, args, signers });
 }
 
 /*
- * Transfers Gametv NFT with id equal **itemId** from **sender** account to **recipient**.
+ * Transfers Nowgg NFT with id equal **itemId** from **sender** account to **recipient**.
  * @param {string} sender - sender address
  * @param {string} recipient - recipient address
  * @param {UInt64} itemId - id of the item to transfer
  * @throws Will throw an error if execution will be halted
  * @returns {Promise<*>}
  * */
-export const transferGametvNFT = async (sender, recipient, itemId) => {
-	const name = "transfer_gametv_nft";
+export const transferNowggNFT = async (sender, recipient, itemId) => {
+	const name = "transfer_nowgg_nft";
 	const args = [recipient, itemId];
 	const signers = [sender];
 
@@ -111,21 +111,21 @@ export const transferGametvNFT = async (sender, recipient, itemId) => {
 };
 
 /*
- * Returns the type of GametvNFT with **id** in account collection.
+ * Returns the type of NowggNFT with **id** in account collection.
  * @param {string} account - account address
  * @param {UInt64} id - NFT id
  * @throws Will throw an error if execution will be halted
  * @returns {UInt64}
  * */
-export const getGametvNFTById = async (account, id) => {
-	const name = "get_game_tv_nft_type_id";
+export const getNowggNFTById = async (account, id) => {
+	const name = "get_nowgg_nft_details";
 	const args = [account, id];
 
 	return executeScript({ name, args });
 };
 
 /*
- * Returns the length of account's GametvNFT collection.
+ * Returns the length of account's NowggNFT collection.
  * @param {string} account - account address
  * @throws Will throw an error if execution will be halted
  * @returns {UInt64}
