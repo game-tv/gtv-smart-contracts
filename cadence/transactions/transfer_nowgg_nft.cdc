@@ -1,8 +1,8 @@
   
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../contracts/GametvNFT.cdc"
+import NowggNFT from "../contracts/NowggNFT.cdc"
 
-// This transaction transfers a Gametv NFT from one account to another.
+// This transaction transfers a Nowgg NFT from one account to another.
 
 transaction(recipient: Address, withdrawID: UInt64) {
     prepare(signer: AuthAccount) {
@@ -11,11 +11,11 @@ transaction(recipient: Address, withdrawID: UInt64) {
         let recipient = getAccount(recipient)
 
         // borrow a reference to the signer's NFT collection
-        let collectionRef = signer.borrow<&GametvNFT.Collection>(from: GametvNFT.CollectionStoragePath)
+        let collectionRef = signer.borrow<&NowggNFT.Collection>(from: NowggNFT.CollectionStoragePath)
             ?? panic("Could not borrow a reference to the owner's collection")
 
         // borrow a public reference to the receivers collection
-        let depositRef = recipient.getCapability(GametvNFT.CollectionPublicPath)!.borrow<&{NonFungibleToken.CollectionPublic}>()!
+        let depositRef = recipient.getCapability(NowggNFT.CollectionPublicPath)!.borrow<&{NonFungibleToken.CollectionPublic}>()!
 
         // withdraw the NFT from the owner's collection
         let nft <- collectionRef.withdraw(withdrawID: withdrawID)

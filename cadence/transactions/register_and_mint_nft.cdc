@@ -1,5 +1,5 @@
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../contracts/GametvNFT.cdc"
+import NowggNFT from "../contracts/NowggNFT.cdc"
 
 // This transction uses the NFTMinter resource to register and mint a new NFT.
 //
@@ -9,12 +9,12 @@ import GametvNFT from "../contracts/GametvNFT.cdc"
 transaction(metadata: {String : AnyStruct}, recipient: Address, typeID: String, maxCount: UInt64) {
     
     // local variable for storing the minter reference
-    let minter: &GametvNFT.NFTMinter
+    let minter: &NowggNFT.NFTMinter
 
     prepare(signer: AuthAccount) {
 
         // borrow a reference to the NFTMinter resource in storage
-        self.minter = signer.borrow<&GametvNFT.NFTMinter>(from: GametvNFT.MinterStoragePath)
+        self.minter = signer.borrow<&NowggNFT.NFTMinter>(from: NowggNFT.MinterStoragePath)
             ?? panic("Could not borrow a reference to the NFT minter")
     }
 
@@ -24,7 +24,7 @@ transaction(metadata: {String : AnyStruct}, recipient: Address, typeID: String, 
 
         // borrow the recipient's public NFT collection reference
         let receiver = recipient
-            .getCapability(GametvNFT.CollectionPublicPath)!
+            .getCapability(NowggNFT.CollectionPublicPath)!
             .borrow<&{NonFungibleToken.CollectionPublic}>()
             ?? panic("Could not get receiver reference to the NFT Collection")
           

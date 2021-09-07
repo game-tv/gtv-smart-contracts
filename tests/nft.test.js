@@ -2,20 +2,20 @@
 import path from "path";
 import { emulator, init, getAccountAddress, shallPass, shallResolve, shallRevert } from "flow-js-testing";
 import {
-	deployGametvNFT,
+	deployNowggNFT,
 	getCollectionLength,
-	getGametvNFTById,
-	getGametvNFTSupply,
-	setupGametvNFTOnAccount,
-	transferGametvNFT,
+	getNowggNFTById,
+	getNowggNFTSupply,
+	setupNowggNFTOnAccount,
+	transferNowggNFT,
 	typeID1,
 	typeID2,
-  getGametvAdminAddress,
+  getNowggAdminAddress,
 	mintAlreadyRegisteredNFT,
 	registerType,
 	getNftTypeDetails,
 	getHistoricNftTypeDetails
-} from "../helpers/gametv-nft";
+} from "../helpers/nowgg-nft";
 import { expect } from "@jest/globals";
 
 jest.setTimeout(50000);
@@ -33,28 +33,28 @@ describe("Contract tests", () => {
 		return emulator.stop();
 	});
 
-  it("shall deploy GametvNFT contract", async () => {
-		await shallPass(deployGametvNFT());
+  it("shall deploy NowggNFT contract", async () => {
+		await shallPass(deployNowggNFT());
 	});
 
 	it("supply shall be 0 after contract is deployed", async () => {
 		// Setup
-		await deployGametvNFT();
-		const GametvAdmin = await getGametvAdminAddress();
-		await shallPass(setupGametvNFTOnAccount(GametvAdmin));
+		await deployNowggNFT();
+		const NowggAdmin = await getNowggAdminAddress();
+		await shallPass(setupNowggNFTOnAccount(NowggAdmin));
 
 		await shallResolve(async () => {
-			const supply = await getGametvNFTSupply();
+			const supply = await getNowggNFTSupply();
 			expect(supply).toBe(0);
 		});
 	});
 
-	it("shall be able to mint a GametvNFT", async () => {
+	it("shall be able to mint a NowggNFT", async () => {
 		// Setup
-		await deployGametvNFT();
-		const Admin = await getGametvAdminAddress();
+		await deployNowggNFT();
+		const Admin = await getNowggAdminAddress();
 		const Alice = await getAccountAddress("Alice");
-		await setupGametvNFTOnAccount(Alice);
+		await setupNowggNFTOnAccount(Alice);
 		const itemIdToMint = typeID1;
 		const maxCount = 4;
 
@@ -69,7 +69,7 @@ describe("Contract tests", () => {
 			const nftCount = await getCollectionLength(Alice);
 			expect(nftCount).toBe(1);
 
-			const metadata = await getGametvNFTById(Alice, 0);
+			const metadata = await getNowggNFTById(Alice, 0);
 			expect(metadata.maxCount).toBe(maxCount);
 			expect(metadata.test).toBe("test1");
 			expect(metadata.copyNumber).toBe(1);
@@ -78,9 +78,9 @@ describe("Contract tests", () => {
 
 	it("shall be able to create a new empty NFT Collection", async () => {
 		// Setup
-		await deployGametvNFT();
+		await deployNowggNFT();
 		const Alice = await getAccountAddress("Alice");
-		await setupGametvNFTOnAccount(Alice);
+		await setupNowggNFTOnAccount(Alice);
 
 		// shall be able te read Alice collection and ensure it's empty
 		await shallResolve(async () => {
@@ -91,36 +91,36 @@ describe("Contract tests", () => {
 
 	it("shall not be able to withdraw an NFT that doesn't exist in a collection", async () => {
 		// Setup
-		await deployGametvNFT();
+		await deployNowggNFT();
 		const Alice = await getAccountAddress("Alice");
 		const Bob = await getAccountAddress("Bob");
-		await setupGametvNFTOnAccount(Alice);
-		await setupGametvNFTOnAccount(Bob);
+		await setupNowggNFTOnAccount(Alice);
+		await setupNowggNFTOnAccount(Bob);
 
 		// Transfer transaction shall fail for non-existent item
-		await shallRevert(transferGametvNFT(Alice, Bob, 1337));
+		await shallRevert(transferNowggNFT(Alice, Bob, 1337));
 	});
 
 	it("shall be able to withdraw an NFT and deposit to another accounts collection", async () => {
-		await deployGametvNFT();
+		await deployNowggNFT();
 		const Alice = await getAccountAddress("Alice");
 		const Bob = await getAccountAddress("Bob");
 		const maxCount = 4
-		await setupGametvNFTOnAccount(Alice);
-		await setupGametvNFTOnAccount(Bob);
+		await setupNowggNFTOnAccount(Alice);
+		await setupNowggNFTOnAccount(Bob);
 
 		// Mint instruction for Alice account shall be resolved
 		await shallPass(registerType(typeID1, maxCount));
 		await shallPass(mintAlreadyRegisteredNFT(typeID1, Alice))
 
 		// Transfer transaction shall pass
-		await shallPass(transferGametvNFT(Alice, Bob, 0));
+		await shallPass(transferNowggNFT(Alice, Bob, 0));
 	});
 
 	it("should painc after trying to mint a type that doesnot exist", async () => {
-		await deployGametvNFT();
+		await deployNowggNFT();
 		const Alice = await getAccountAddress("Alice");
-		await setupGametvNFTOnAccount(Alice);
+		await setupNowggNFTOnAccount(Alice);
 		const itemIdToMint = typeID1;
 		const invalidItemId = "test"
 		const maxCount = 2;
@@ -130,9 +130,9 @@ describe("Contract tests", () => {
 	})
 
 	it("should painc after minting more than max count of NFTs", async () => {
-		await deployGametvNFT();
+		await deployNowggNFT();
 		const Alice = await getAccountAddress("Alice");
-		await setupGametvNFTOnAccount(Alice);
+		await setupNowggNFTOnAccount(Alice);
 		const itemIdToMint = typeID1;
 		const maxCount = 2;
 
@@ -144,9 +144,9 @@ describe("Contract tests", () => {
 	})
 
 	it("should panic after registering same type again", async () => {
-		await deployGametvNFT();
+		await deployNowggNFT();
 		const Alice = await getAccountAddress("Alice");
-		await setupGametvNFTOnAccount(Alice);
+		await setupNowggNFTOnAccount(Alice);
 		const maxCount = 4;
 
 		await shallPass(registerType(typeID1, maxCount));
@@ -157,10 +157,10 @@ describe("Contract tests", () => {
 	})
 
 	it("should be able to get details of an active and historic NFT", async () => {
-		await deployGametvNFT();
+		await deployNowggNFT();
 		const maxCount = 2;
 
-		const Admin = await getGametvAdminAddress();
+		const Admin = await getNowggAdminAddress();
 
 
 		await shallPass(registerType(typeID1, maxCount));
@@ -171,7 +171,7 @@ describe("Contract tests", () => {
 		expect(typeDetails.currentCount).toBe(0);
 
 		const Alice = await getAccountAddress("Alice");
-		await setupGametvNFTOnAccount(Alice);
+		await setupNowggNFTOnAccount(Alice);
 
 		await shallPass(mintAlreadyRegisteredNFT(typeID1, Alice))
 

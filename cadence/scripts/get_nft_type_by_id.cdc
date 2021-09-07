@@ -1,5 +1,5 @@
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
-import GametvNFT from "../contracts/GametvNFT.cdc"
+import NowggNFT from "../contracts/NowggNFT.cdc"
 
 // This script returns the data for an NFT in an account's collection.
 
@@ -8,13 +8,13 @@ pub fun main(address: Address, itemID: String): AnyStruct {
     // get the public account object for the token owner
     let owner = getAccount(address)
 
-    let nftTypeHelper = owner.getCapability(GametvNFT.NFTtypeHelperPublicPath)!
-        .borrow<&{GametvNFT.NftTypeHelperPublic}>()
+    let nftTypeHelper = owner.getCapability(NowggNFT.NFTtypeHelperPublicPath)!
+        .borrow<&{NowggNFT.NftTypeHelperPublic}>()
         ?? panic("Could not borrow NFTtypePublic")
 
     // borrow a reference to a specific NFT in the collection
-    let gametvNftType = nftTypeHelper.borrowActiveNFTtype(id: itemID)
+    let NowggNftType = nftTypeHelper.borrowActiveNFTtype(id: itemID)
         ?? panic("No such itemID in that collection")
 
-    return gametvNftType
+    return NowggNftType
 }
