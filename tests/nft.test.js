@@ -15,7 +15,7 @@ import {
 	registerType,
 	getNftTypeDetails,
 	getHistoricNftTypeDetails,
-	testing
+	transferResources
 } from "../helpers/nowgg-nft";
 import { expect } from "@jest/globals";
 
@@ -94,9 +94,7 @@ describe("Contract tests", () => {
 		await deployNowggNFT();
 		const Admin = await getNowggAdminAddress();
 		const Alice = await getAccountAddress("Alice");
-		await shallPass(testing(Admin, Alice));
-
-
+		await shallPass(transferResources(Admin, Alice));
 	})
 
 	it("shall not be able to withdraw an NFT that doesn't exist in a collection", async () => {

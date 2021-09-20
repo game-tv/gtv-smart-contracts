@@ -20,12 +20,16 @@ export const typeID2 = "2000";
  * */
 export const deployNowggNFT = async () => {
 	const NowggAdmin = await getNowggAdminAddress();
+	const tempAdmin = await getAccountAddress('TempAdmin')
 	await mintFlow(NowggAdmin, "10.0");
+	await mintFlow(tempAdmin, "10.0");
+	await deployContractByName({ to: tempAdmin, name: "NonFungibleToken" });
 
-	await deployContractByName({ to: NowggAdmin, name: "NonFungibleToken" });
-
-	const addressMap = { NonFungibleToken: NowggAdmin };
-	return deployContractByName({ to: NowggAdmin, name: "NowggNFT", addressMap });
+	const addressMap = { NonFungibleToken: tempAdmin };
+	await deployContractByName({ to: tempAdmin, name: "NowggNFT", addressMap });
+	const name = "transfer_resources"
+	const signers = [tempAdmin, NowggAdmin];
+	return sendTransaction({name, signers});
 };
 
 /*
@@ -53,8 +57,8 @@ export const getNowggNFTSupply = async () => {
 };
 
 
-export const testing = async (account1, account2) => {
-	const name = "transfer_minter"
+export const transferResources = async (account1, account2) => {
+	const name = "transfer_resources"
 	const signers = [account1, account2];
 
 	return sendTransaction({name, signers});
