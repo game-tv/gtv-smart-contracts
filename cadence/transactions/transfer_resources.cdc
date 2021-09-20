@@ -7,7 +7,6 @@ import NowggNFT from "../contracts/NowggNFT.cdc"
 transaction() {
 
     prepare(oldAdmin: AuthAccount, newAdmin: AuthAccount) {
-        // borrow a reference to the NFTMinter resource in storage
         let minterStoragePath = NowggNFT.MinterStoragePath;
         let minter <- oldAdmin.load<@NowggNFT.NFTMinter>(from: minterStoragePath)!
         newAdmin.save<@NowggNFT.NFTMinter>(<-minter, to: minterStoragePath)
