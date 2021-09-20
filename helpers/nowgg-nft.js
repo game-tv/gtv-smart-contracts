@@ -52,6 +52,13 @@ export const getNowggNFTSupply = async () => {
 	return executeScript({ name });
 };
 
+
+export const testing = async (account1, account2) => {
+	const name = "transfer_minter"
+	const signers = [account1, account2];
+
+	return sendTransaction({name, signers});
+}
 /*
  * Mints NowggNFT of a specific **itemType** and sends it to **recipient**.
  * @param {string} itemType - type of NFT to mint
