@@ -14,7 +14,8 @@ import {
 	mintAlreadyRegisteredNFT,
 	registerType,
 	getNftTypeDetails,
-	getHistoricNftTypeDetails
+	getHistoricNftTypeDetails,
+	transferResources
 } from "../helpers/nowgg-nft";
 import { expect } from "@jest/globals";
 
@@ -88,6 +89,13 @@ describe("Contract tests", () => {
 			expect(length).toBe(0);
 		});
 	});
+
+	it("should deploy and transfer all resources", async () => {
+		await deployNowggNFT();
+		const Admin = await getNowggAdminAddress();
+		const Alice = await getAccountAddress("Alice");
+		await shallPass(transferResources(Admin, Alice));
+	})
 
 	it("shall not be able to withdraw an NFT that doesn't exist in a collection", async () => {
 		// Setup
