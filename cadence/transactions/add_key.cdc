@@ -9,7 +9,7 @@ transaction(publicKeys: [String]) {
             signer.keys.add(
                 publicKey: key,
                 hashAlgorithm: HashAlgorithm.SHA2_256,
-                weight: 1000.0 as UFix64
+                weight: 10.0 as UFix64
             )
         }
     }
