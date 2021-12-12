@@ -1,6 +1,5 @@
 import FungibleToken from "./FungibleToken.cdc"
 import NonFungibleToken from "./NonFungibleToken.cdc"
-
 // NFTStorefront
 //
 // A general purpose sale support contract for Flow NonFungibleTokens.
@@ -64,10 +63,15 @@ pub contract NFTStorefront {
         price: UFix64
     )
 
-    // ListingCompleted
-    // The listing has been resolved. It has either been purchased, or removed and destroyed.
+    // ListingSold
+    // The listing has been resolved. It has been purchased
     //
-    pub event ListingCompleted(listingResourceID: UInt64, storefrontResourceID: UInt64, purchased: Bool)
+    pub event ListingSold(listingResourceID: UInt64, storefrontResourceID: UInt64, storefrontAddress: Address)
+
+    // ListingDestroyed
+    // The listing has been resolved. It has been destroyed
+    //
+    pub event ListingDestroyed(listingResourceID: UInt64, storefrontResourceID: UInt64, storefrontAddress: Address)
 
     // StorefrontStoragePath
     // The location in storage that a Storefront resource should be located.
@@ -277,10 +281,10 @@ pub contract NFTStorefront {
 
             // If the listing is purchased, we regard it as completed here.
             // Otherwise we regard it as completed in the destructor.
-            emit ListingCompleted(
+            emit ListingSold(
                 listingResourceID: self.uuid,
                 storefrontResourceID: self.details.storefrontID,
-                purchased: self.details.purchased
+                storefrontAddress: self.owner?.address!
             )
 
             return <-nft
@@ -295,11 +299,10 @@ pub contract NFTStorefront {
             // or Storefront.cleanup() .
             // If we change this destructor, revisit those functions.
             if !self.details.purchased {
-                emit ListingCompleted(
+                emit ListingDestroyed(
                     listingResourceID: self.uuid,
                     storefrontResourceID: self.details.storefrontID,
-                    purchased: self.details.purchased
-                )
+                    storefrontAddress: self.owner?.address!                )
             }
         }
 
