@@ -56,6 +56,7 @@ pub contract NFTStorefront {
     //
     pub event ListingAvailable(
         storefrontAddress: Address,
+        storefrontID: UInt64,
         listingResourceID: UInt64,
         nftType: Type,
         nftID: UInt64,
@@ -69,9 +70,12 @@ pub contract NFTStorefront {
     pub event ListingSold(listingResourceID: UInt64, storefrontResourceID: UInt64, storefrontAddress: Address)
 
     // ListingDestroyed
-    // The listing has been resolved. It has been destroyed
-    //
+    // Event is passed when a listing is destroyed specifically via remove listing
     pub event ListingDestroyed(listingResourceID: UInt64, storefrontResourceID: UInt64, storefrontAddress: Address)
+
+    // ListingRemoved
+    // This is fired whenever a listing gets destroyed
+    pub event ListingRemoved(listingResourceID: UInt64, storefrontResourceID: UInt64)
 
     // StorefrontStoragePath
     // The location in storage that a Storefront resource should be located.
@@ -299,10 +303,10 @@ pub contract NFTStorefront {
             // or Storefront.cleanup() .
             // If we change this destructor, revisit those functions.
             if !self.details.purchased {
-                emit ListingDestroyed(
+                emit ListingRemoved(
                     listingResourceID: self.uuid,
                     storefrontResourceID: self.details.storefrontID,
-                    storefrontAddress: self.owner?.address!                )
+                )
             }
         }
 
@@ -409,6 +413,7 @@ pub contract NFTStorefront {
 
             emit ListingAvailable(
                 storefrontAddress: self.owner?.address!,
+                storefrontID: self.uuid,
                 listingResourceID: listingResourceID,
                 nftType: nftType,
                 nftID: nftID,
@@ -425,9 +430,23 @@ pub contract NFTStorefront {
         pub fun removeListing(listingResourceID: UInt64) {
             let listing <- self.listings.remove(key: listingResourceID)
                 ?? panic("missing Listing")
-    
+
+            let listingDetails = listing.getDetails()
+            let listingUUID = listing.uuid
+
+                emit ListingDestroyed(
+                    listingResourceID: listingDetails.,
+                    storefrontResourceID: listingDetails.storefrontID,
+                    storefrontAddress: self.owner?.address!
+                )
             // This will emit a ListingCompleted event.
             destroy listing
+
+            emit ListingDestroyed(
+                listingResourceID: listingUUID,
+                storefrontResourceID: self.uuid,
+                storefrontAddress: self.owner?.address!
+            )
         }
 
         // getListingIDs
