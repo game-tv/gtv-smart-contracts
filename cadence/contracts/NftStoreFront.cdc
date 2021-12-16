@@ -20,7 +20,7 @@ import NonFungibleToken from "./NonFungibleToken.cdc"
 // Marketplaces and other aggregators can watch for Listing events
 // and list items of interest.
 //
-pub contract NFTStorefront {
+pub contract NFTStoreFront {
     // NFTStorefrontInitialized
     // This contract has been deployed.
     // Event consumers can now expect events from this contract.
@@ -431,14 +431,8 @@ pub contract NFTStorefront {
             let listing <- self.listings.remove(key: listingResourceID)
                 ?? panic("missing Listing")
 
-            let listingDetails = listing.getDetails()
             let listingUUID = listing.uuid
 
-                emit ListingDestroyed(
-                    listingResourceID: listingDetails.,
-                    storefrontResourceID: listingDetails.storefrontID,
-                    storefrontAddress: self.owner?.address!
-                )
             // This will emit a ListingCompleted event.
             destroy listing
 
@@ -478,8 +472,16 @@ pub contract NFTStorefront {
             }
 
             let listing <- self.listings.remove(key: listingResourceID)!
+            let listingUUID = listing.uuid
+
             assert(listing.getDetails().purchased == true, message: "listing is not purchased, only admin can remove")
             destroy listing
+            
+            emit ListingDestroyed(
+                listingResourceID: listingUUID,
+                storefrontResourceID: self.uuid,
+                storefrontAddress: self.owner?.address!
+            )
         }
 
         // destructor

@@ -9,6 +9,8 @@ export const toUFix64 = (value) => value.toFixed(UFIX64_PRECISION);
 
 export const getNowggAdminAddress = async () => getAccountAddress("NowggAdmin");
 
+export const getStorefrontAdminAddress = async () => getAccountAddress("StorefrontAdmin")
+
 // 
 export const typeID1 = "1000";
 export const typeID2 = "2000";
@@ -18,15 +20,19 @@ export const typeID2 = "2000";
  * @throws Will throw an error if transaction is reverted.
  * @returns {Promise<*>}
  * */
-export const deployNowggNFT = async () => {
+export const deployContracts = async () => {
 	const NowggAdmin = await getNowggAdminAddress();
+	const StorefrontAdmin = await getStorefrontAdminAddress();
+
 	const tempAdmin = await getAccountAddress('TempAdmin')
 	await mintFlow(NowggAdmin, "10.0");
 	await mintFlow(tempAdmin, "10.0");
+	await mintFlow(StorefrontAdmin, "10.0")
 	await deployContractByName({ to: tempAdmin, name: "NonFungibleToken" });
 
-	const addressMap = { NonFungibleToken: tempAdmin };
+	const addressMap = { NonFungibleToken: tempAdmin, FungibleToken: "0xee82856bf20e2aa6" };
 	await deployContractByName({ to: tempAdmin, name: "NowggNFT", addressMap });
+	await deployContractByName({ to: StorefrontAdmin, name: "NFTStoreFront", addressMap});
 	const name = "transfer_resources"
 	const signers = [tempAdmin, NowggAdmin];
 	return sendTransaction({name, signers});
@@ -176,3 +182,81 @@ export const getHistoricNftTypeDetails = async (account, typeId) => {
 
 	return executeScript({ name, args });
 }
+
+
+/*
+ * Setup storefront
+ * @param {string} account - account address
+ * */
+export const setupStorefrontOnAccount = async (account) => {
+	await setupNowggNFTOnAccount(account);
+
+	const name = "setup_storefront_account";
+	const signers = [account];
+
+	return sendTransaction({ name, signers });
+};
+
+
+/*
+ * Sell Nft item
+ * @param {string} seller - account address
+ * @param {UInt64} itemId - id of NFT
+ * @param {UFix64} price - price of NFT
+ * @throws Will throw an error if execution will be halted
+ * @returns {Promise<*>}
+ * */
+export const sellItem = async (seller, itemId, price) => {
+	const name = "sell_item";
+	const args = [itemId, price];
+	const signers = [seller];
+
+	return sendTransaction({ name, args, signers });
+};
+
+
+/*
+ * Sell Nft item
+ * @param {string} buyer - account address of buyer
+ * @param {UInt64} resourceId - Listing Resource Id
+ * @param {string} seller - account address of seller
+ * @throws Will throw an error if execution will be halted
+ * @returns {Promise<*>}
+ * */
+export const buyItem = async (buyer, resourceId, seller) => {
+	const name = "buy_items_flow_token";
+	const args = [resourceId, seller];
+	const signers = [buyer];
+
+	return sendTransaction({ name, args, signers });
+};
+
+
+/*
+ * get total available listing count
+ * @param {string} account - account address
+ * @throws Will throw an error if execution will be halted
+ * @returns {UInt64}
+ * */
+export const getSaleOfferCount = async (account) => {
+	const name = "get_sale_offers_length";
+	const args = [account];
+
+	return executeScript({ name, args });
+};
+
+
+/*
+ * Removes item with id equal to **item** from sale.
+ * @param {string} owner - owner address
+ * @param {UInt64} itemId - id of item to remove
+ * @throws Will throw an error if transaction is reverted.
+ * @returns {Promise<*>}
+ * */
+export const removeItem = async (owner, itemId) => {
+	const name = "remove_item";
+	const signers = [owner];
+	const args = [itemId];
+
+	return sendTransaction({ name, args, signers });
+};

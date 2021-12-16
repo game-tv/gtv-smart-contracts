@@ -3,19 +3,19 @@ import FungibleToken from "../contracts/FungibleToken.cdc"
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import FlowToken from "../contracts/FlowToken.cdc"
 import NowggNFT from "../contracts/NowggNFT.cdc"
-import NFTStorefront from "../contracts/NFTStorefront.cdc"
+import NFTStoreFront from "../contracts/NFTStorefront.cdc"
 
 transaction(saleOfferResourceID: UInt64, storefrontAddress: Address) {
 
     let paymentVault: @FungibleToken.Vault
     let NowggNFTCollection: &NowggNFT.Collection{NonFungibleToken.Receiver}
-    let storefront: &NFTStorefront.Storefront{NFTStorefront.StorefrontPublic}
-    let saleOffer: &NFTStorefront.Listing{NFTStorefront.ListingPublic}
+    let storefront: &NFTStoreFront.Storefront{NFTStoreFront.StorefrontPublic}
+    let saleOffer: &NFTStoreFront.Listing{NFTStoreFront.ListingPublic}
 
     prepare(account: AuthAccount) {
         self.storefront = getAccount(storefrontAddress)
-            .getCapability<&NFTStorefront.Storefront{NFTStorefront.StorefrontPublic}>(
-                NFTStorefront.StorefrontPublicPath
+            .getCapability<&NFTStoreFront.Storefront{NFTStoreFront.StorefrontPublic}>(
+                NFTStoreFront.StorefrontPublicPath
             )!
             .borrow()
             ?? panic("Could not borrow Storefront from provided address")
@@ -26,7 +26,7 @@ transaction(saleOfferResourceID: UInt64, storefrontAddress: Address) {
         let price = self.saleOffer.getDetails().salePrice
 
         let mainFlowTokenVault = account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("Cannot borrow Kibble vault from account storage")
+            ?? panic("Cannot borrow FlowToken vault from account storage")
         
         self.paymentVault <- mainFlowTokenVault.withdraw(amount: price)
 
