@@ -1,8 +1,8 @@
 
 import path from "path";
-import { emulator, init, getAccountAddress, shallPass, shallResolve, shallRevert } from "flow-js-testing";
+import { emulator, init, getAccountAddress, shallPass, shallResolve, shallRevert, getFlowBalance, mintFlow } from "flow-js-testing";
 import {
-	deployNowggNFT,
+	deployContracts,
 	getCollectionLength,
 	getNowggNFTById,
 	getNowggNFTSupply,
@@ -10,12 +10,18 @@ import {
 	transferNowggNFT,
 	typeID1,
 	typeID2,
-  getNowggAdminAddress,
+  	getNowggAdminAddress,
 	mintAlreadyRegisteredNFT,
 	registerType,
 	getNftTypeDetails,
 	getHistoricNftTypeDetails,
-	transferResources
+	transferResources,
+	setupStorefrontOnAccount,
+	sellItem,
+	toUFix64,
+	buyItem,
+	getSaleOfferCount,
+	removeItem
 } from "../helpers/nowgg-nft";
 import { expect } from "@jest/globals";
 
@@ -25,7 +31,7 @@ describe("Contract tests", () => {
 	beforeEach(async () => {
 		const basePath = path.resolve(__dirname, "../cadence");
 		const port = 8085;
-		init(basePath, port);
+		await init(basePath, {port});
 		return emulator.start(port, false);
 	});
 
@@ -35,13 +41,15 @@ describe("Contract tests", () => {
 	});
 
   it("shall deploy NowggNFT contract", async () => {
-		await shallPass(deployNowggNFT());
+		await shallPass(deployContracts());
 	});
 
 	it("supply shall be 0 after contract is deployed", async () => {
 		// Setup
-		await deployNowggNFT();
+		await deployContracts();
 		const NowggAdmin = await getNowggAdminAddress();
+		const amount = "42.0"
+		const resp = await mintFlow(NowggAdmin, amount);
 		await shallPass(setupNowggNFTOnAccount(NowggAdmin));
 
 		await shallResolve(async () => {
@@ -52,7 +60,7 @@ describe("Contract tests", () => {
 
 	it("shall be able to mint a NowggNFT", async () => {
 		// Setup
-		await deployNowggNFT();
+		await deployContracts();
 		const Admin = await getNowggAdminAddress();
 		const Alice = await getAccountAddress("Alice");
 		await setupNowggNFTOnAccount(Alice);
@@ -79,7 +87,7 @@ describe("Contract tests", () => {
 
 	it("shall be able to create a new empty NFT Collection", async () => {
 		// Setup
-		await deployNowggNFT();
+		await deployContracts();
 		const Alice = await getAccountAddress("Alice");
 		await setupNowggNFTOnAccount(Alice);
 
@@ -91,7 +99,7 @@ describe("Contract tests", () => {
 	});
 
 	it("should deploy and transfer all resources", async () => {
-		await deployNowggNFT();
+		await deployContracts();
 		const Admin = await getNowggAdminAddress();
 		const Alice = await getAccountAddress("Alice");
 		await shallPass(transferResources(Admin, Alice));
@@ -99,7 +107,7 @@ describe("Contract tests", () => {
 
 	it("shall not be able to withdraw an NFT that doesn't exist in a collection", async () => {
 		// Setup
-		await deployNowggNFT();
+		await deployContracts();
 		const Alice = await getAccountAddress("Alice");
 		const Bob = await getAccountAddress("Bob");
 		await setupNowggNFTOnAccount(Alice);
@@ -110,7 +118,7 @@ describe("Contract tests", () => {
 	});
 
 	it("shall be able to withdraw an NFT and deposit to another accounts collection", async () => {
-		await deployNowggNFT();
+		await deployContracts();
 		const Alice = await getAccountAddress("Alice");
 		const Bob = await getAccountAddress("Bob");
 		const maxCount = 4
@@ -126,7 +134,7 @@ describe("Contract tests", () => {
 	});
 
 	it("should painc after trying to mint a type that doesnot exist", async () => {
-		await deployNowggNFT();
+		await deployContracts();
 		const Alice = await getAccountAddress("Alice");
 		await setupNowggNFTOnAccount(Alice);
 		const itemIdToMint = typeID1;
@@ -138,7 +146,7 @@ describe("Contract tests", () => {
 	})
 
 	it("should painc after minting more than max count of NFTs", async () => {
-		await deployNowggNFT();
+		await deployContracts();
 		const Alice = await getAccountAddress("Alice");
 		await setupNowggNFTOnAccount(Alice);
 		const itemIdToMint = typeID1;
@@ -152,7 +160,7 @@ describe("Contract tests", () => {
 	})
 
 	it("should panic after registering same type again", async () => {
-		await deployNowggNFT();
+		await deployContracts();
 		const Alice = await getAccountAddress("Alice");
 		await setupNowggNFTOnAccount(Alice);
 		const maxCount = 4;
@@ -165,7 +173,7 @@ describe("Contract tests", () => {
 	})
 
 	it("should be able to get details of an active and historic NFT", async () => {
-		await deployNowggNFT();
+		await deployContracts();
 		const maxCount = 2;
 
 		const Admin = await getNowggAdminAddress();
@@ -197,5 +205,111 @@ describe("Contract tests", () => {
 		expect(typeDetails.maxCount).toBe(maxCount);
 		expect(typeDetails.currentCount).toBe(2);
 
-	})
+	});
+
+	it("should be able to setup storefront account", async () => {
+		await deployContracts();
+		const Alice = await getAccountAddress("Alice");
+
+		await shallPass(setupStorefrontOnAccount(Alice));
+	});
+
+	it("shall be able to create a sale offer", async () => {
+		// Setup
+		await deployContracts();
+		const Alice = await getAccountAddress("Alice");
+		const Admin = await getNowggAdminAddress();
+		await setupStorefrontOnAccount(Alice);
+
+		// Mint KittyItem for Alice's account
+		const itemIdToMint = typeID1;
+		const maxCount = 4;
+
+		await shallPass(registerType(itemIdToMint, maxCount));
+		const typeDetails = await getNftTypeDetails(Admin, itemIdToMint);
+		expect(typeDetails.typeId).toBe(itemIdToMint);
+		expect(typeDetails.maxCount).toBe(maxCount);
+		expect(typeDetails.currentCount).toBe(0);
+		await shallPass(mintAlreadyRegisteredNFT(itemIdToMint, Alice))
+		const itemID = 0;
+
+		await shallPass(sellItem(Alice, itemID, toUFix64(0.5)));
+	});
+
+	it("shall be able to accept a sale offer", async () => {
+		// Setup
+		await deployContracts();
+
+		// Setup seller account
+		const Alice = await getAccountAddress("Alice");
+		const Admin = await getNowggAdminAddress();
+
+		await setupStorefrontOnAccount(Alice);
+		const itemIdToMint = typeID1;
+		const maxCount = 4;
+
+		await shallPass(registerType(itemIdToMint, maxCount));
+		const typeDetails = await getNftTypeDetails(Admin, itemIdToMint);
+		expect(typeDetails.typeId).toBe(itemIdToMint);
+		expect(typeDetails.maxCount).toBe(maxCount);
+		expect(typeDetails.currentCount).toBe(0);
+		await shallPass(mintAlreadyRegisteredNFT(itemIdToMint, Alice))
+		const itemID = 0;
+
+		// Setup buyer account
+		const Bob = await getAccountAddress("Bob");
+		await setupStorefrontOnAccount(Bob);
+
+		await shallPass(mintFlow(Bob, toUFix64(100)));
+
+		// Bob shall be able to buy from Alice
+		const sellItemTransactionResult = await shallPass(sellItem(Alice, itemID, toUFix64(1.11)));
+
+		const saleOfferAvailableEvent = sellItemTransactionResult.events[0];
+		const saleOfferResourceID = saleOfferAvailableEvent.data.listingResourceID;
+
+		await shallPass(buyItem(Bob, saleOfferResourceID, Alice));
+
+		const itemCount = await getCollectionLength(Bob);
+		expect(itemCount).toBe(1);
+
+		const offerCount = await getSaleOfferCount(Alice);
+		expect(offerCount).toBe(0);
+	});
+
+	it("shall be able to remove a sale offer", async () => {
+		// Deploy contracts
+		await shallPass(deployContracts());
+
+		// Setup Alice account
+		const Alice = await getAccountAddress("Alice");
+		const Admin = await getNowggAdminAddress();
+
+		await shallPass(setupStorefrontOnAccount(Alice));
+
+		// Mint instruction shall pass
+		const itemIdToMint = typeID1;
+		const maxCount = 4;
+
+		await shallPass(registerType(itemIdToMint, maxCount));
+		const typeDetails = await getNftTypeDetails(Admin, itemIdToMint);
+		expect(typeDetails.typeId).toBe(itemIdToMint);
+		expect(typeDetails.maxCount).toBe(maxCount);
+		expect(typeDetails.currentCount).toBe(0);
+		await shallPass(mintAlreadyRegisteredNFT(itemIdToMint, Alice))
+		const itemID = 0;
+
+
+		// Listing item for sale shall pass
+		const sellItemTransactionResult = await shallPass(sellItem(Alice, itemID, toUFix64(1.11)));
+
+		const saleOfferAvailableEvent = sellItemTransactionResult.events[0];
+		const saleOfferResourceID = saleOfferAvailableEvent.data.listingResourceID;
+
+		// Alice shall be able to remove item from sale
+		await shallPass(removeItem(Alice, saleOfferResourceID));
+
+		const offerCount = await getSaleOfferCount(Alice);
+		expect(offerCount).toBe(0);
+	});
  })
