@@ -20,17 +20,17 @@ pub fun getOrCreateStorefront(account: AuthAccount): &NFTStoreFront.Storefront {
     return storefrontRef
 }
 
-transaction(saleItemIDs: [UInt64], saleItemPrices: [UFix64]) {
+transaction(saleItemIDs: [UInt64], saleItemPrices: [UFix64], platformAddress: Address, platformCutPercent: UFix64) {
 
-    let flowReceiver: Capability<&FungibleToken.Vault{FungibleToken.Receiver}>
-    let nowggNftsProvider: Capability<&NowggNFT.Collection{NonFungibleToken.Provider, NowggNFT.NowggNFTCollectionPublic}>
+    let flowReceiver: Capability<&FlowToken.Vault{FungibleToken.Receiver}>
+    let nowggNftsProvider: Capability<&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
     let storefront: &NFTStoreFront.Storefront
 
     prepare(account: AuthAccount) {
         // We need a provider capability, but one is not provided by default so we create one if needed.
         let nowggNftsCollectionProviderPrivatePath = /private/NowggNFTsCollectionProvider
 
-        self.flowReceiver = account.getCapability<&FungibleToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
+        self.flowReceiver = account.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
 
         assert(self.flowReceiver.borrow() != nil, message: "Missing or mis-typed FLOW receiver")
 
@@ -38,7 +38,7 @@ transaction(saleItemIDs: [UInt64], saleItemPrices: [UFix64]) {
             account.link<&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>(nowggNftsCollectionProviderPrivatePath, target: NowggNFT.CollectionStoragePath)
         }
 
-        self.nowggNftsProvider = account.getCapability<&NowggNFT.Collection{NonFungibleToken.Provider, NowggNFT.NowggNFTCollectionPublic}>(nowggNftsCollectionProviderPrivatePath)!
+        self.nowggNftsProvider = account.getCapability<&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>(nowggNftsCollectionProviderPrivatePath)!
 
         assert(self.nowggNftsProvider.borrow() != nil, message: "Missing or mis-typed NowggNFT.Collection provider")
 
@@ -47,14 +47,19 @@ transaction(saleItemIDs: [UInt64], saleItemPrices: [UFix64]) {
 
     execute {
         var index = 0
+        let platformAccount = getAccount(platformAddress)
+        let platformFlowReceiver = platformAccount.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
         for saleItemID in saleItemIDs {
+            var saleCuts: [NFTStoreFront.SaleCut] = [
+                
+            ]
+
             self.storefront.createListing(
                 nftProviderCapability: self.nowggNftsProvider,
                 nftType: Type<@NowggNFT.NFT>(),
                 nftID: saleItemID,
                 salePaymentVaultType: Type<@FlowToken.Vault>(),
-                ftReceiver: self.flowReceiver,
-                price: saleItemPrices[index]
+                saleCuts: saleCuts
             )
             index = index + 1
         }

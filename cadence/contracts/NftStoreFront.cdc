@@ -209,7 +209,7 @@ pub contract NFTStoreFront {
         // This will assert in the same way as the NFT standard borrowNFT()
         // if the NFT is absent, for example if it has been sold via another listing.
         //
-        pub fun borrowNFT(): &NowggNFT.NFT
+        pub fun borrowNFT(): &NonFungibleToken.NFT
 
         // purchase
         // Purchase the listing, buying the token.
@@ -235,19 +235,19 @@ pub contract NFTStoreFront {
         // This capability allows the resource to withdraw *any* NFT, so you should be careful when giving
         // such a capability to a resource and always check its code to make sure it will use it in the
         // way that it claims.
-        access(contract) let nftProviderCapability: Capability<&{NonFungibleToken.Provider, NowggNFT.NowggNFTCollectionPublic}>
+        access(contract) let nftProviderCapability: Capability<&{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
 
         // borrowNFT
         // This will assert in the same way as the NFT standard borrowNFT()
         // if the NFT is absent, for example if it has been sold via another listing.
         //
-        pub fun borrowNFT(): &NowggNFT.NFT {
-            let ref = self.nftProviderCapability.borrow()!.borrowNowggNFT(id: self.getDetails().nftID)!
+        pub fun borrowNFT(): &NonFungibleToken.NFT {
+            let ref = self.nftProviderCapability.borrow()!.borrowNFT(id: self.getDetails().nftID)!
             //- CANNOT DO THIS IN PRECONDITION: "member of restricted type is not accessible: isInstance"
             //  result.isInstance(self.getDetails().nftType): "token has wrong type"
             assert(ref.isInstance(self.getDetails().nftType), message: "token has wrong type")
             assert(ref.id == self.getDetails().nftID, message: "token has wrong ID")
-            return ref
+            return ref as &NonFungibleToken.NFT
         }
 
         // getDetails
@@ -339,7 +339,7 @@ pub contract NFTStoreFront {
         // initializer
         //
         init (
-            nftProviderCapability: Capability<&{NonFungibleToken.Provider, NowggNFT.NowggNFTCollectionPublic}>,
+            nftProviderCapability: Capability<&{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>,
             nftType: Type,
             nftID: UInt64,
             salePaymentVaultType: Type,
@@ -365,7 +365,7 @@ pub contract NFTStoreFront {
             assert(provider != nil, message: "cannot borrow nftProviderCapability")
 
             // This will precondition assert if the token is not available.
-            let nft = provider!.borrowNowggNFT(id: self.details.nftID)!
+            let nft = provider!.borrowNFT(id: self.details.nftID)!
             assert(nft.isInstance(self.details.nftType), message: "token is not of specified type")
             assert(nft.id == self.details.nftID, message: "token does not have specified ID")
         }
@@ -380,12 +380,11 @@ pub contract NFTStoreFront {
         // Allows the Storefront owner to create and insert Listings.
         //
         pub fun createListing(
-            nftProviderCapability: Capability<&{NonFungibleToken.Provider, NowggNFT.NowggNFTCollectionPublic}>,
+            nftProviderCapability: Capability<&{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>,
             nftType: Type,
             nftID: UInt64,
             salePaymentVaultType: Type,
-            ftReceiver: Capability<&{FungibleToken.Receiver}>,
-            price: UFix64
+            saleCuts: [SaleCut]
         ): UInt64
         // removeListing
         // Allows the Storefront owner to remove any sale listing, acepted or not.
@@ -415,49 +414,12 @@ pub contract NFTStoreFront {
         // Create and publish a Listing for an NFT.
         //
          pub fun createListing(
-            nftProviderCapability: Capability<&{NonFungibleToken.Provider, NowggNFT.NowggNFTCollectionPublic}>,
+            nftProviderCapability: Capability<&{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>,
             nftType: Type,
             nftID: UInt64,
             salePaymentVaultType: Type,
-            ftReceiver: Capability<&{FungibleToken.Receiver}>,
-            price: UFix64
+            saleCuts: [SaleCut]
          ): UInt64 {
-
-            let provider = nftProviderCapability.borrow()
-            assert(provider != nil, message: "cannot borrow nftProviderCapability")
-
-            let nft = provider!.borrowNowggNFT(id: nftID)!
-            assert(nft.isInstance(nftType), message: "token is not of specified type")
-            assert(nft.id == nftID, message: "token does not have specified ID")
-
-            let metadata = nft.getMetadata()
-            var saleCutConfigs: [{String: AnyStruct}]? = [{
-
-                "address": "", //nowgg admin account addrress
-                "cutPercentValue": 0.02,
-                "fungibleTokenReceiverPath": "/public/flowTokenReceiver"
-            }]
-            if metadata.containsKey("saleCuts") {
-                saleCutConfigs = metadata["saleCuts"] as? [{String: AnyStruct}]
-            }
-
-            let saleCuts: [SaleCut] = []
-            var reservedPercentCuts = 0.0
-            for saleCutConfig in saleCutConfigs! {
-                let account = getAccount(saleCutConfig["address"] as! Address)
-                let accountReceiver = account.getCapability<&FungibleToken.Vault{FungibleToken.Receiver}>(saleCutConfig["fungibleTokenReceiverPath"] as! PublicPath)!
-                let cutPercent = saleCutConfig["cutValue"] as! UFix64
-                saleCuts.append(SaleCut(
-                    receiver: accountReceiver,
-                    amount: price * cutPercent
-                ))
-                reservedPercentCuts = reservedPercentCuts + cutPercent
-            }
-            saleCuts.append(SaleCut(
-                receiver: ftReceiver,
-                amount: price * (1.0 - reservedPercentCuts)
-            ))
-
             let listing <- create Listing(
                 nftProviderCapability: nftProviderCapability,
                 nftType: nftType,
