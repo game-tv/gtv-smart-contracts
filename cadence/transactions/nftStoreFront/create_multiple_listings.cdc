@@ -49,9 +49,12 @@ transaction(saleItemIDs: [UInt64], saleItemPrices: [UFix64], platformAddress: Ad
         var index = 0
         let platformAccount = getAccount(platformAddress)
         let platformFlowReceiver = platformAccount.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
+
         for saleItemID in saleItemIDs {
-            var saleCuts: [NFTStoreFront.SaleCut] = [
-                
+            
+            let saleCuts = [
+                NFTStoreFront.SaleCut(receiver: platformFlowReceiver, amount: saleItemPrices[index] * platformCutPercent)
+                NFTStoreFront.SaleCut(receiver: self.flowReceiver, amount: saleItemPrices[index] * (1.0 - platformCutPercent))
             ]
 
             self.storefront.createListing(

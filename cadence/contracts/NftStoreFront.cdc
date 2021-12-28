@@ -1,6 +1,5 @@
 import FungibleToken from "./FungibleToken.cdc"
 import NonFungibleToken from "./NonFungibleToken.cdc"
-import NowggNFT from "./NowggNFT.cdc"
 
 // NFTStorefront
 //
@@ -242,7 +241,7 @@ pub contract NFTStoreFront {
         // if the NFT is absent, for example if it has been sold via another listing.
         //
         pub fun borrowNFT(): &NonFungibleToken.NFT {
-            let ref = self.nftProviderCapability.borrow()!.borrowNFT(id: self.getDetails().nftID)!
+            let ref = self.nftProviderCapability.borrow()!.borrowNFT(id: self.getDetails().nftID)
             //- CANNOT DO THIS IN PRECONDITION: "member of restricted type is not accessible: isInstance"
             //  result.isInstance(self.getDetails().nftType): "token has wrong type"
             assert(ref.isInstance(self.getDetails().nftType), message: "token has wrong type")
@@ -365,7 +364,7 @@ pub contract NFTStoreFront {
             assert(provider != nil, message: "cannot borrow nftProviderCapability")
 
             // This will precondition assert if the token is not available.
-            let nft = provider!.borrowNFT(id: self.details.nftID)!
+            let nft = provider!.borrowNFT(id: self.details.nftID)
             assert(nft.isInstance(self.details.nftType), message: "token is not of specified type")
             assert(nft.id == self.details.nftID, message: "token does not have specified ID")
         }
