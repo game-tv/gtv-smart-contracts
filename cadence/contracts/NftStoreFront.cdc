@@ -1,5 +1,6 @@
 import FungibleToken from "./FungibleToken.cdc"
 import NonFungibleToken from "./NonFungibleToken.cdc"
+
 // NFTStorefront
 //
 // A general purpose sale support contract for Flow NonFungibleTokens.
@@ -39,14 +40,20 @@ pub contract NFTStoreFront {
     // If the seller moves the Storefront while the listing is valid, 
     // that is on them.
     //
-    pub event StorefrontInitialized(storefrontResourceID: UInt64)
+    pub event StorefrontInitialized(
+        storefrontResourceID: UInt64,
+        timestamp: UFix64
+    )
 
     // StorefrontDestroyed
     // A Storefront has been destroyed.
     // Event consumers can now stop processing events from this Storefront.
     // Note that we do not specify an address.
     //
-    pub event StorefrontDestroyed(storefrontResourceID: UInt64)
+    pub event StorefrontDestroyed(
+        storefrontResourceID: UInt64,
+        timestamp: UFix64
+    )
 
     // ListingAvailable
     // A listing has been created and added to a Storefront resource.
@@ -61,17 +68,32 @@ pub contract NFTStoreFront {
         nftType: Type,
         nftID: UInt64,
         ftVaultType: Type,
-        price: UFix64
+        price: UFix64,
+        timestamp: UFix64
     )
 
     // ListingSold
     // The listing has been resolved. It has been purchased
     //
-    pub event ListingSold(listingResourceID: UInt64, storefrontResourceID: UInt64, storefrontAddress: Address)
+    pub event ListingSold(
+        listingResourceID: UInt64,
+        storefrontResourceID: UInt64,
+        storefrontAddress: Address,
+        nftType: Type,
+        nftID: UInt64,
+        timestamp: UFix64
+    )
 
     // ListingDestroyed
     // Event is passed when a listing is destroyed specifically via remove listing
-    pub event ListingDestroyed(listingResourceID: UInt64, storefrontResourceID: UInt64, storefrontAddress: Address)
+    pub event ListingDestroyed(
+        listingResourceID: UInt64,
+        storefrontResourceID: UInt64,
+        storefrontAddress: Address,
+        nftType: Type,
+        nftID: UInt64,
+        timestamp: UFix64
+    )
 
     // ListingRemoved
     // This is fired whenever a listing gets destroyed
@@ -288,7 +310,10 @@ pub contract NFTStoreFront {
             emit ListingSold(
                 listingResourceID: self.uuid,
                 storefrontResourceID: self.details.storefrontID,
-                storefrontAddress: self.owner?.address!
+                storefrontAddress: self.owner?.address!,
+                nftType: self.details.nftType,
+                nftID: self.details.nftID,
+                timestamp: getCurrentBlock().timestamp
             )
 
             return <-nft
@@ -418,7 +443,8 @@ pub contract NFTStoreFront {
                 nftType: nftType,
                 nftID: nftID,
                 ftVaultType: salePaymentVaultType,
-                price: listingPrice
+                price: listingPrice,
+                timestamp: getCurrentBlock().timestamp
             )
 
             return listingResourceID
@@ -432,6 +458,8 @@ pub contract NFTStoreFront {
                 ?? panic("missing Listing")
 
             let listingUUID = listing.uuid
+            let listingNftType = listing.getDetails().nftType
+            let listingNftID = listing.getDetails().nftID
 
             // This will emit a ListingCompleted event.
             destroy listing
@@ -439,7 +467,10 @@ pub contract NFTStoreFront {
             emit ListingDestroyed(
                 listingResourceID: listingUUID,
                 storefrontResourceID: self.uuid,
-                storefrontAddress: self.owner?.address!
+                storefrontAddress: self.owner?.address!,
+                nftType: listingNftType,
+                nftID: listingNftID,
+                timestamp: getCurrentBlock().timestamp
             )
         }
 
@@ -473,6 +504,8 @@ pub contract NFTStoreFront {
 
             let listing <- self.listings.remove(key: listingResourceID)!
             let listingUUID = listing.uuid
+            let listingNftType = listing.getDetails().nftType
+            let listingNftID = listing.getDetails().nftID
 
             assert(listing.getDetails().purchased == true, message: "listing is not purchased, only admin can remove")
             destroy listing
@@ -480,7 +513,10 @@ pub contract NFTStoreFront {
             emit ListingDestroyed(
                 listingResourceID: listingUUID,
                 storefrontResourceID: self.uuid,
-                storefrontAddress: self.owner?.address!
+                storefrontAddress: self.owner?.address!,
+                nftType: listingNftType,
+                nftID: listingNftID,
+                timestamp: getCurrentBlock().timestamp
             )
         }
 
@@ -490,7 +526,10 @@ pub contract NFTStoreFront {
             destroy self.listings
 
             // Let event consumers know that this storefront will no longer exist
-            emit StorefrontDestroyed(storefrontResourceID: self.uuid)
+            emit StorefrontDestroyed(
+                storefrontResourceID: self.uuid,
+                timestamp: getCurrentBlock().timestamp
+            )
         }
 
         // constructor
@@ -499,7 +538,10 @@ pub contract NFTStoreFront {
             self.listings <- {}
 
             // Let event consumers know that this storefront exists
-            emit StorefrontInitialized(storefrontResourceID: self.uuid)
+            emit StorefrontInitialized(
+                storefrontResourceID: self.uuid,
+                timestamp: getCurrentBlock().timestamp
+            )
         }
     }
 
