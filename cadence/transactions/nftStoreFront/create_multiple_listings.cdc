@@ -20,7 +20,14 @@ pub fun getOrCreateStorefront(account: AuthAccount): &NFTStoreFront.Storefront {
     return storefrontRef
 }
 
-transaction(saleItemIDs: [UInt64], saleItemPrices: [UFix64], platformAddress: Address, platformCutPercent: UFix64) {
+transaction(
+        saleItemIDs: [UInt64],
+        saleItemPrices: [UFix64],
+        platformAddress: Address,
+        platformCutPercent: UFix64,
+        royaltyAddress: Address,
+        royaltyCutPercent: UFix64
+) {
 
     let flowReceiver: Capability<&FlowToken.Vault{FungibleToken.Receiver}>
     let nowggNftsProvider: Capability<&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic}>
@@ -49,13 +56,34 @@ transaction(saleItemIDs: [UInt64], saleItemPrices: [UFix64], platformAddress: Ad
         var index = 0
         let platformAccount = getAccount(platformAddress)
         let platformFlowReceiver = platformAccount.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
+        let royaltyAccount: Account
+        let royaltyFlowReceiver: Capability<&FlowToken.Vault{FungibleToken.Receiver}>
+        if royaltyCutPercent > 0.0 {
+            royaltyAccount = getAccount(royaltyAddress)
+            royaltyFlowReceiver = royaltyAccount.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
+        }
 
         for saleItemID in saleItemIDs {
-            
-            let saleCuts = [
-                NFTStoreFront.SaleCut(receiver: platformFlowReceiver, amount: saleItemPrices[index] * platformCutPercent)
-                NFTStoreFront.SaleCut(receiver: self.flowReceiver, amount: saleItemPrices[index] * (1.0 - platformCutPercent))
+            let price = saleItemPrices[index]
+            var sellerCut = 1.0 - platformCutPercent
+
+            var saleCuts = [
+                NFTStoreFront.SaleCut(
+                    receiver: platformFlowReceiver,
+                    amount: price * platformCutPercent
+                )
             ]
+            if royaltyCutPercent > 0.0 {
+                saleCuts.append(NFTStoreFront.SaleCut(
+                    receiver: royaltyFlowReceiver,
+                    amount: price * royaltyCutPercent
+                ))
+                sellerCut = sellerCut - royaltyCutPercent
+            }
+            saleCuts.append(NFTStoreFront.SaleCut(
+                receiver: self.flowReceiver,
+                amount: price * sellerCut
+            ))
 
             self.storefront.createListing(
                 nftProviderCapability: self.nowggNftsProvider,
