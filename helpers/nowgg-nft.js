@@ -254,9 +254,9 @@ export const getSaleOfferCount = async (account) => {
  * @returns {Promise<*>}
  * */
 export const removeItem = async (owner, itemId) => {
-	const name = "remove_item";
+	const name = "nftStoreFront/remove_multiple_listings";
 	const signers = [owner];
-	const args = [itemId];
+	const args = [[itemId]];
 
 	return sendTransaction({ name, args, signers });
 };
