@@ -510,14 +510,6 @@ pub contract NFTStoreFront {
             assert(listing.getDetails().purchased == true, message: "listing is not purchased, only admin can remove")
             destroy listing
             
-            emit ListingDestroyed(
-                listingResourceID: listingUUID,
-                storefrontResourceID: self.uuid,
-                storefrontAddress: self.owner?.address!,
-                nftType: listingNftType,
-                nftID: listingNftID,
-                timestamp: getCurrentBlock().timestamp
-            )
         }
 
         // destructor
