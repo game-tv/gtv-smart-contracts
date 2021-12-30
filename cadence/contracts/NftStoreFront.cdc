@@ -63,7 +63,7 @@ pub contract NFTStoreFront {
     //
     pub event ListingAvailable(
         storefrontAddress: Address,
-        storefrontID: UInt64,
+        storefrontResourceID: UInt64,
         listingResourceID: UInt64,
         nftType: Type,
         nftID: UInt64,
@@ -438,7 +438,7 @@ pub contract NFTStoreFront {
 
             emit ListingAvailable(
                 storefrontAddress: self.owner?.address!,
-                storefrontID: self.uuid,
+                storefrontResourceID: self.uuid,
                 listingResourceID: listingResourceID,
                 nftType: nftType,
                 nftID: nftID,
