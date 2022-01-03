@@ -56,12 +56,8 @@ transaction(
         var index = 0
         let platformAccount = getAccount(platformAddress)
         let platformFlowReceiver = platformAccount.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
-        let royaltyAccount: Account
-        let royaltyFlowReceiver: Capability<&FlowToken.Vault{FungibleToken.Receiver}>
-        if royaltyCutPercent > 0.0 {
-            royaltyAccount = getAccount(royaltyAddress)
-            royaltyFlowReceiver = royaltyAccount.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
-        }
+        let royaltyAccount = getAccount(royaltyAddress)
+        let royaltyFlowReceiver = royaltyAccount.getCapability<&FlowToken.Vault{FungibleToken.Receiver}>(/public/flowTokenReceiver)!
 
         for saleItemID in saleItemIDs {
             let price = saleItemPrices[index]
