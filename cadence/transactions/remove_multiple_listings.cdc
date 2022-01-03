@@ -1,4 +1,4 @@
-import NFTStoreFront from "../../contracts/NFTStoreFront.cdc"
+import NFTStoreFront from "../contracts/NFTStoreFront.cdc"
 
 transaction(listingResourceIDs: [UInt64]) {
     let storefront: &NFTStoreFront.Storefront{NFTStoreFront.StorefrontManager}

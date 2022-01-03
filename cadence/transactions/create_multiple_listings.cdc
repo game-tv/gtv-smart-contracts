@@ -1,8 +1,8 @@
-import FungibleToken from "../../contracts/FungibleToken.cdc"
-import NonFungibleToken from "../../contracts/NonFungibleToken.cdc"
-import FlowToken from "../../contracts/FlowToken.cdc"
-import NowggNFT from "../../contracts/NowggNFT.cdc"
-import NFTStoreFront from "../../contracts/NFTStoreFront.cdc"
+import FungibleToken from "../contracts/FungibleToken.cdc"
+import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
+import FlowToken from "../contracts/FlowToken.cdc"
+import NowggNFT from "../contracts/NowggNFT.cdc"
+import NFTStoreFront from "../contracts/NFTStoreFront.cdc"
 
 pub fun getOrCreateStorefront(account: AuthAccount): &NFTStoreFront.Storefront {
     if let storefrontRef = account.borrow<&NFTStoreFront.Storefront>(from: NFTStoreFront.StorefrontStoragePath) {
