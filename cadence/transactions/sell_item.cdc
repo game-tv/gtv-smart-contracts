@@ -1,7 +1,7 @@
 import FungibleToken from "../contracts/FungibleToken.cdc"
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import FlowToken from "../contracts/FlowToken.cdc"
-import NFTStoreFront from "../contracts/NFTStorefront.cdc"
+import NFTStoreFront from "../contracts/NFTStoreFront.cdc"
 import NowggNFT from "../contracts/NowggNFT.cdc"
 
 transaction(saleItemID: UInt64, saleItemPrice: UFix64) {
