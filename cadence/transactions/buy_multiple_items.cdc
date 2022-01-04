@@ -17,19 +17,19 @@ transaction(saleOfferResourceIDs: [UInt64], storefrontAddress: Address) {
                 NFTStoreFront.StorefrontPublicPath
             )!
             .borrow()
-            ?? panic("Could not borrow Storefront from provided address")
+            ?? panic("NM_FLOW_001")
         
         var price : UFix64 = 0.0
 
         self.saleOffers = []
 
         let mainFlowTokenVault = account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
-            ?? panic("Cannot borrow FlowToken vault from account storage")
+            ?? panic("NM_FLOW_002")
         
 
         for saleOfferResourceID in saleOfferResourceIDs {
             let saleOffer = self.storefront.borrowListing(listingResourceID: saleOfferResourceID)
-            ?? panic("No Offer with that ID in Storefront")
+            ?? panic("NM_FLOW_003")
             price = price + saleOffer.getDetails().salePrice
             self.saleOffers.append(saleOffer)
         }
@@ -39,7 +39,7 @@ transaction(saleOfferResourceIDs: [UInt64], storefrontAddress: Address) {
 
         self.NowggNFTCollection = account.borrow<&NowggNFT.Collection{NonFungibleToken.Receiver}>(
             from: NowggNFT.CollectionStoragePath
-        ) ?? panic("Cannot borrow NowggNFT collection receiver from account")
+        ) ?? panic("NM_FLOW_004")
     }
 
     execute {
