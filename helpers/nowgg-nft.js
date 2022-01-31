@@ -254,9 +254,25 @@ export const getSaleOfferCount = async (account) => {
  * @returns {Promise<*>}
  * */
 export const removeItem = async (owner, itemId) => {
-	const name = "nftStoreFront/remove_multiple_listings";
+	const name = "remove_multiple_listings";
 	const signers = [owner];
 	const args = [[itemId]];
+
+	return sendTransaction({ name, args, signers });
+};
+
+
+/*
+ * Update item with id equal to **item** from sale.
+ * @param {string} owner - owner address
+ * @param {UInt64} itemId - id of item to remove
+ * @throws Will throw an error if transaction is reverted.
+ * @returns {Promise<*>}
+ * */
+export const updateItem = async (owner, itemId, price, platformAddress, platformCut, royaltyAddress, royaltyCut, removeItemId) => {
+	const name = "update_multiple_listings";
+	const signers = [owner];
+	const args = [[itemId], [price], platformAddress, platformCut, royaltyAddress, royaltyCut, [removeItemId]];
 
 	return sendTransaction({ name, args, signers });
 };

@@ -21,7 +21,8 @@ import {
 	toUFix64,
 	buyItem,
 	getSaleOfferCount,
-	removeItem
+	removeItem,
+	updateItem
 } from "../helpers/nowgg-nft";
 import { expect } from "@jest/globals";
 
@@ -311,5 +312,41 @@ describe("Contract tests", () => {
 
 		const offerCount = await getSaleOfferCount(Alice);
 		expect(offerCount).toBe(0);
+	});
+
+	it("shall be able to update a sale offer", async () => {
+		// Deploy contracts
+		await shallPass(deployContracts());
+
+		// Setup Alice account
+		const Alice = await getAccountAddress("Alice");
+		const Admin = await getNowggAdminAddress();
+
+		await shallPass(setupStorefrontOnAccount(Alice));
+
+		// Mint instruction shall pass
+		const itemIdToMint = typeID1;
+		const maxCount = 4;
+
+		await shallPass(registerType(itemIdToMint, maxCount));
+		const typeDetails = await getNftTypeDetails(Admin, itemIdToMint);
+		expect(typeDetails.typeId).toBe(itemIdToMint);
+		expect(typeDetails.maxCount).toBe(maxCount);
+		expect(typeDetails.currentCount).toBe(0);
+		await shallPass(mintAlreadyRegisteredNFT(itemIdToMint, Alice))
+		const itemID = 0;
+
+
+		// Listing item for sale shall pass
+		const sellItemTransactionResult = await shallPass(sellItem(Alice, itemID, toUFix64(1.11)));
+
+		const saleOfferAvailableEvent = sellItemTransactionResult.events[0];
+		const saleOfferResourceID = saleOfferAvailableEvent.data.listingResourceID;
+
+		// Alice shall be able to update item from sale
+		const updateListingResult = await shallPass(updateItem(Alice, itemID, toUFix64(0.1), Admin, toUFix64(0.1), Admin, toUFix64(0.1), saleOfferResourceID));
+		const saleOfferPrice= updateListingResult.events[2].data.price;
+
+		expect(parseFloat(saleOfferPrice)).toBe(0.1);
 	});
  })
