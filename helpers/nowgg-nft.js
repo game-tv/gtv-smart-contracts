@@ -270,7 +270,7 @@ export const removeItem = async (owner, itemId) => {
  * @returns {Promise<*>}
  * */
 export const updateItem = async (owner, itemId, price, platformAddress, platformCut, royaltyAddress, royaltyCut, removeItemId) => {
-	const name = "create_update_multiple_listings";
+	const name = "create_update_listings";
 	const signers = [owner];
 	const args = [[itemId], [price], platformAddress, platformCut, royaltyAddress, royaltyCut, [removeItemId]];
 
