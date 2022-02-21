@@ -6,7 +6,7 @@ import NowggNFT from "../contracts/NowggNFT.cdc"
 // It must be run with the account that has the minter resource
 // stored at path /storage/NFTMinter.
 
-transaction(recipient: Address, typeID: String, metadata: {String: AnyStruct}) {
+transaction(recipient: Address, typeID: String, metadata: {String: AnyStruct}, extra: {String: String}) {
     
     // local variable for storing the minter reference
     let minter: &NowggNFT.NFTMinter
@@ -22,6 +22,9 @@ transaction(recipient: Address, typeID: String, metadata: {String: AnyStruct}) {
         // get the public account object for the recipient
         let recipient = getAccount(recipient)
 
+        let customMetadata : {String: AnyStruct} = metaData;
+        customMetadata["extra"] = extra;
+
         // borrow the recipient's public NFT collection reference
         let receiver = recipient
             .getCapability(NowggNFT.CollectionPublicPath)!
@@ -29,6 +32,6 @@ transaction(recipient: Address, typeID: String, metadata: {String: AnyStruct}) {
             ?? panic("Could not get receiver reference to the NFT Collection")
 
         // mint the NFT and deposit it to the recipient's collection
-        self.minter.mintNFT(recipient: receiver, typeId: typeID, metaData: metadata)
+        self.minter.mintNFT(recipient: receiver, typeId: typeID, metaData: customMetadata)
     }
 }
