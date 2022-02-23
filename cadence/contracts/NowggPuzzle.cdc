@@ -37,14 +37,14 @@ pub contract NowggPuzzle {
 
     pub resource interface PuzzleHelperInterface {   
         pub fun registerPuzzle(
-            minter: &NowggNFT.NFTMinter,
+            nftMinter: &NowggNFT.NFTMinter,
             puzzleId: String,
             pieceNftTypeIds: [String],
             maxCount: UInt64,
         )
         pub fun combinePuzzle(
-            minter: &NowggNFT.NFTMinter,
-            recipient: &{NonFungibleToken.CollectionPublic},
+            nftMinter: &NowggNFT.NFTMinter,
+            nftProvider: &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic},
             puzzleId: String,
             pieceNftIds: [UInt64],
             metadata: {String: AnyStruct}
@@ -63,29 +63,29 @@ pub contract NowggPuzzle {
         }
 
         pub fun registerPuzzle(
-            minter: &NowggNFT.NFTMinter,
+            nftMinter: &NowggNFT.NFTMinter,
             puzzleId: String,
             pieceNftTypeIds: [String],
             maxCount: UInt64,
         ) {
             NowggPuzzle.activePuzzles[puzzleId] = Puzzle(puzzleId: puzzleId, pieceNftTypeIds: pieceNftTypeIds)
-            minter.registerType(typeId: puzzleId, maxCount: maxCount)
+            nftMinter.registerType(typeId: puzzleId, maxCount: maxCount)
             emit PuzzleRegistered(puzzleId: puzzleId, pieceNftTypeIds: pieceNftTypeIds)
         }
 
         pub fun combinePuzzle(
-            minter: &NowggNFT.NFTMinter,
-            recipient: &{NonFungibleToken.CollectionPublic},
+            nftMinter: &NowggNFT.NFTMinter,
+            nftProvider: &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic},
             puzzleId: String,
             pieceNftIds: [UInt64],
             metadata: {String: AnyStruct}
         ) {
-            let puzzle = self.borrowActivePuzzle(puzzleId: puzzleId)
+            let puzzle = self.borrowActivePuzzle(puzzleId: puzzleId)!
             let pieceNftTypes = puzzle.pieceNftTypeIds
 
             for nftId in pieceNftIds {
-                let nft = recipient.borrowNFT(id: nftId)!
-                let nftTypeId = nft.getMetadata()["nftTypeId"]
+                let nft = nftProvider.borrowNowggNFT(id: nftId)!
+                let nftTypeId = nft.getMetadata()["nftTypeId"] as? String!
                 assert(pieceNftTypes.contains(nftTypeId), message: "Incorrect puzzle piece NFT provided")
 
                 var index = 0
@@ -99,13 +99,13 @@ pub contract NowggPuzzle {
             }
             assert(pieceNftTypes.length == 0, message: "All required puzzle piece NFTs not provided")
 
-            minter.mintNFT(recipient: recipient, typeId: puzzleId, metaData: metadata)
+            nftMinter.mintNFT(recipient: nftProvider, typeId: puzzleId, metaData: metadata)
 
             for nftId in pieceNftIds {
-                destroy <-recipent.withdraw(withdrawID: nftId)
+                destroy <-nftProvider.withdraw(withdrawID: nftId)
             }
 
-            emit PuzzleCombined(puzzleId: puzzleId, by: recipient.owner.address)
+            emit PuzzleCombined(puzzleId: puzzleId, by: nftProvider.owner?.address!)
         }
     }
 

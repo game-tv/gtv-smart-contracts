@@ -30,8 +30,9 @@ export const deployContracts = async () => {
 	await mintFlow(StorefrontAdmin, "10.0")
 	await deployContractByName({ to: tempAdmin, name: "NonFungibleToken" });
 
-	const addressMap = { NonFungibleToken: tempAdmin, FungibleToken: "0xee82856bf20e2aa6" };
+	const addressMap = { NonFungibleToken: tempAdmin, FungibleToken: "0xee82856bf20e2aa6", NowggNFT: tempAdmin };
 	await deployContractByName({ to: tempAdmin, name: "NowggNFT", addressMap });
+	await deployContractByName({ to: tempAdmin, name: "NowggPuzzle", addressMap });
 	await deployContractByName({ to: StorefrontAdmin, name: "NFTStoreFront", addressMap});
 	const name = "transfer_resources"
 	const signers = [tempAdmin, NowggAdmin];
