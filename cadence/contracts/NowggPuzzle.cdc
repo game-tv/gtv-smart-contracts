@@ -5,7 +5,7 @@ import NowggNFT from "./NowggNFT.cdc"
 pub contract NowggPuzzle {
 
     pub event ContractInitialized()
-    pub event PuzzleRegistered(puzzleId: String, pieceNftTypeIds: [String])
+    pub event PuzzleRegistered(puzzleId: String, childNftTypeIds: [String])
     pub event PuzzleCombined(puzzleId: String, by: Address)
 
     pub let PuzzleHelperStoragePath: StoragePath
@@ -13,14 +13,14 @@ pub contract NowggPuzzle {
 
     pub struct Puzzle {
         pub let puzzleId: String
-        pub let pieceNftTypeIds: [String]
+        pub let childNftTypeIds: [String]
 
-        init(puzzleId: String, pieceNftTypeIds: [String]) {
+        init(puzzleId: String, childNftTypeIds: [String]) {
             if (NowggPuzzle.activePuzzles.keys.contains(puzzleId)) {
                 panic("Puzzle is already registered")
             }
             self.puzzleId = puzzleId
-            self.pieceNftTypeIds = pieceNftTypeIds
+            self.childNftTypeIds = childNftTypeIds
         }
     }
 
@@ -39,14 +39,14 @@ pub contract NowggPuzzle {
         pub fun registerPuzzle(
             nftMinter: &NowggNFT.NFTMinter,
             puzzleId: String,
-            pieceNftTypeIds: [String],
+            childNftTypeIds: [String],
             maxCount: UInt64,
         )
         pub fun combinePuzzle(
             nftMinter: &NowggNFT.NFTMinter,
             nftProvider: &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic},
             puzzleId: String,
-            pieceNftIds: [UInt64],
+            childNftIds: [UInt64],
             metadata: {String: AnyStruct}
         )
     }
@@ -65,43 +65,43 @@ pub contract NowggPuzzle {
         pub fun registerPuzzle(
             nftMinter: &NowggNFT.NFTMinter,
             puzzleId: String,
-            pieceNftTypeIds: [String],
+            childNftTypeIds: [String],
             maxCount: UInt64,
         ) {
-            NowggPuzzle.activePuzzles[puzzleId] = Puzzle(puzzleId: puzzleId, pieceNftTypeIds: pieceNftTypeIds)
+            NowggPuzzle.activePuzzles[puzzleId] = Puzzle(puzzleId: puzzleId, childNftTypeIds: childNftTypeIds)
             nftMinter.registerType(typeId: puzzleId, maxCount: maxCount)
-            emit PuzzleRegistered(puzzleId: puzzleId, pieceNftTypeIds: pieceNftTypeIds)
+            emit PuzzleRegistered(puzzleId: puzzleId, childNftTypeIds: childNftTypeIds)
         }
 
         pub fun combinePuzzle(
             nftMinter: &NowggNFT.NFTMinter,
             nftProvider: &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic},
             puzzleId: String,
-            pieceNftIds: [UInt64],
+            childNftIds: [UInt64],
             metadata: {String: AnyStruct}
         ) {
             let puzzle = self.borrowActivePuzzle(puzzleId: puzzleId)!
-            let pieceNftTypes = puzzle.pieceNftTypeIds
+            let childNftTypes = puzzle.childNftTypeIds
 
-            for nftId in pieceNftIds {
+            for nftId in childNftIds {
                 let nft = nftProvider.borrowNowggNFT(id: nftId)!
                 let nftTypeId = nft.getMetadata()["nftTypeId"] as? String!
-                assert(pieceNftTypes.contains(nftTypeId), message: "Incorrect puzzle piece NFT provided")
+                assert(childNftTypes.contains(nftTypeId), message: "Incorrect puzzle child NFT provided")
 
                 var index = 0
-                for pieceNftType in pieceNftTypes {
-                    if pieceNftType == nftTypeId {
+                for childNftType in childNftTypes {
+                    if childNftType == nftTypeId {
                         break
                     }
                     index = index + 1
                 }
-                pieceNftTypes.remove(at: index)
+                childNftTypes.remove(at: index)
             }
-            assert(pieceNftTypes.length == 0, message: "All required puzzle piece NFTs not provided")
+            assert(childNftTypes.length == 0, message: "All required puzzle child NFTs not provided")
 
             nftMinter.mintNFT(recipient: nftProvider, typeId: puzzleId, metaData: metadata)
 
-            for nftId in pieceNftIds {
+            for nftId in childNftIds {
                 destroy <-nftProvider.withdraw(withdrawID: nftId)
             }
 
