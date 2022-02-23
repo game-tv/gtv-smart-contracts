@@ -68,12 +68,11 @@ pub contract NowggPuzzle {
             childNftTypeIds: [String],
             maxCount: UInt64,
         ) {
-            NowggPuzzle.activePuzzles[puzzleId] = Puzzle(puzzleId: puzzleId, childNftTypeIds: childNftTypeIds)
-
             for childPuzzleTypeId in childNftTypeIds {
                 nftMinter.registerType(typeId: childPuzzleTypeId, maxCount: maxCount)
             }
             nftMinter.registerType(typeId: puzzleId, maxCount: maxCount)
+            NowggPuzzle.activePuzzles[puzzleId] = Puzzle(puzzleId: puzzleId, childNftTypeIds: childNftTypeIds)
             emit PuzzleRegistered(puzzleId: puzzleId, childNftTypeIds: childNftTypeIds)
         }
 
