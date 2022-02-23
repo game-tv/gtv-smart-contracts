@@ -277,3 +277,16 @@ export const updateItem = async (owner, itemId, price, platformAddress, platform
 
 	return sendTransaction({ name, args, signers });
 };
+
+export const registerPuzzle = async (parentNftTypeId, childNftTypeIds, maxCount) => {
+	const name = "register_puzzle";
+	const args = [parentNftTypeId, childNftTypeIds, maxCount];
+	const signers = [await getNowggAdminAddress()]
+	return sendTransaction({ name, args, signers });
+};
+
+export const getActivePuzzle = async (puzzleId) => {
+	const name = "get_active_puzzle";
+	const args = [await getNowggAdminAddress(), puzzleId];
+	return executeScript({ name, args });
+};
