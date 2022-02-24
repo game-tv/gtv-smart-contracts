@@ -30,8 +30,9 @@ export const deployContracts = async () => {
 	await mintFlow(StorefrontAdmin, "10.0")
 	await deployContractByName({ to: tempAdmin, name: "NonFungibleToken" });
 
-	const addressMap = { NonFungibleToken: tempAdmin, FungibleToken: "0xee82856bf20e2aa6" };
+	const addressMap = { NonFungibleToken: tempAdmin, FungibleToken: "0xee82856bf20e2aa6", NowggNFT: tempAdmin };
 	await deployContractByName({ to: tempAdmin, name: "NowggNFT", addressMap });
+	await deployContractByName({ to: tempAdmin, name: "NowggPuzzle", addressMap });
 	await deployContractByName({ to: StorefrontAdmin, name: "NFTStoreFront", addressMap});
 	const name = "transfer_resources"
 	const signers = [tempAdmin, NowggAdmin];
@@ -275,4 +276,17 @@ export const updateItem = async (owner, itemId, price, platformAddress, platform
 	const args = [[itemId], [price], platformAddress, platformCut, royaltyAddress, royaltyCut, [removeItemId]];
 
 	return sendTransaction({ name, args, signers });
+};
+
+export const registerPuzzle = async (parentNftTypeId, childNftTypeIds, maxCount) => {
+	const name = "register_puzzle";
+	const args = [parentNftTypeId, childNftTypeIds, maxCount];
+	const signers = [await getNowggAdminAddress()]
+	return sendTransaction({ name, args, signers });
+};
+
+export const getActivePuzzle = async (puzzleId) => {
+	const name = "get_active_puzzle";
+	const args = [await getNowggAdminAddress(), puzzleId];
+	return executeScript({ name, args });
 };

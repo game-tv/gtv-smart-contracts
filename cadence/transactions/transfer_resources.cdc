@@ -1,6 +1,7 @@
   
 import NonFungibleToken from "../contracts/NonFungibleToken.cdc"
 import NowggNFT from "../contracts/NowggNFT.cdc"
+import NowggPuzzle from "../contracts/NowggPuzzle.cdc"
 
 // This transaction transfers a Nowgg NFT Minter from one account to another.
 
@@ -24,6 +25,13 @@ transaction() {
         newAdmin.save<@NowggNFT.NftTypeHelper>(<-typeHelper, to: nftHelperPath)
         newAdmin.link<&NowggNFT.NftTypeHelper{NowggNFT.NftTypeHelperPublic}>(
             NowggNFT.NFTtypeHelperPublicPath, target: NowggNFT.NftTypeHelperStoragePath
+        )
+
+        let puzzleHelperPath = NowggPuzzle.PuzzleHelperStoragePath
+        let puzzleHelper <-oldAdmin.load<@NowggPuzzle.PuzzleHelper>(from: puzzleHelperPath)!
+        newAdmin.save<@NowggPuzzle.PuzzleHelper>(<-puzzleHelper, to: puzzleHelperPath)
+        newAdmin.link<&NowggPuzzle.PuzzleHelper{NowggPuzzle.PuzzleHelperPublic}>(
+            NowggPuzzle.PuzzleHelperPublicPath, target: puzzleHelperPath
         )
     }
 }

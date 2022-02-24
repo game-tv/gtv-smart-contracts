@@ -22,7 +22,9 @@ import {
 	buyItem,
 	getSaleOfferCount,
 	removeItem,
-	updateItem
+	updateItem,
+	registerPuzzle,
+	getActivePuzzle
 } from "../helpers/nowgg-nft";
 import { expect } from "@jest/globals";
 
@@ -348,5 +350,14 @@ describe("Contract tests", () => {
 		const saleOfferPrice= updateListingResult.events[2].data.price;
 
 		expect(parseFloat(saleOfferPrice)).toBe(0.1);
+	});
+
+	it("should be able to register a puzzle", async () => {
+		await deployContracts();
+		const parentNftTypeId = "a";
+		const childNftTypeIds = ["b", "c"];
+		await shallPass(registerPuzzle(parentNftTypeId, childNftTypeIds, 10));
+		const puzzle = await getActivePuzzle(parentNftTypeId);
+		expect(puzzle.childNftTypeIds).toStrictEqual(childNftTypeIds);
 	});
  })
