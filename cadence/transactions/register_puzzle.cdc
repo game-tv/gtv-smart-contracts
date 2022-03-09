@@ -8,7 +8,7 @@ import NowggPuzzle from "../contracts/NowggPuzzle.cdc"
 // and puzzle helper resource stored at /storage/NowggPuzzleHelperStorage
 
 
-transaction(parentNftTypeId: String, childNftTypeIds: [String], maxCount: UInt64) {
+transaction(puzzleId: String, parentNftTypeId: String, childNftTypeIds: [String], maxCount: UInt64) {
     
     let minter: &NowggNFT.NFTMinter
     let puzzleHelper: &NowggPuzzle.PuzzleHelper
@@ -26,7 +26,8 @@ transaction(parentNftTypeId: String, childNftTypeIds: [String], maxCount: UInt64
     execute {
         self.puzzleHelper.registerPuzzle(
             nftMinter: self.minter,
-            puzzleId: parentNftTypeId,
+            puzzleId: puzzleId,
+            parentNftTypeId: parentNftTypeId,
             childNftTypeIds: childNftTypeIds,
             maxCount: maxCount
         )

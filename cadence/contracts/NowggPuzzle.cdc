@@ -5,7 +5,7 @@ import NowggNFT from "./NowggNFT.cdc"
 pub contract NowggPuzzle {
 
     pub event ContractInitialized()
-    pub event PuzzleRegistered(puzzleId: String, childNftTypeIds: [String])
+    pub event PuzzleRegistered(puzzleId: String, parentNftTypeId: String, childNftTypeIds: [String])
     pub event PuzzleCombined(puzzleId: String, by: Address)
 
     pub let PuzzleHelperStoragePath: StoragePath
@@ -13,21 +13,23 @@ pub contract NowggPuzzle {
 
     pub struct Puzzle {
         pub let puzzleId: String
+        pub let parentNftTypeId: String
         pub let childNftTypeIds: [String]
 
-        init(puzzleId: String, childNftTypeIds: [String]) {
-            if (NowggPuzzle.activePuzzles.keys.contains(puzzleId)) {
+        init(puzzleId: String, parentNftTypeId: String, childNftTypeIds: [String]) {
+            if (NowggPuzzle.allPuzzles.keys.contains(puzzleId)) {
                 panic("Puzzle is already registered")
             }
             self.puzzleId = puzzleId
+            self.parentNftTypeId = parentNftTypeId
             self.childNftTypeIds = childNftTypeIds
         }
     }
 
-    access(contract) var activePuzzles: {String: Puzzle}
+    access(contract) var allPuzzles: {String: Puzzle}
 
     pub resource interface PuzzleHelperPublic {
-        pub fun borrowActivePuzzle(puzzleId: String): Puzzle? {
+        pub fun borrowPuzzle(puzzleId: String): Puzzle? {
             post {
                 (result == nil) || (result?.puzzleId == puzzleId):
                     "Cannot borrow puzzle reference: The ID of the returned reference is incorrect"
@@ -39,6 +41,7 @@ pub contract NowggPuzzle {
         pub fun registerPuzzle(
             nftMinter: &NowggNFT.NFTMinter,
             puzzleId: String,
+            parentNftTypeId: String,
             childNftTypeIds: [String],
             maxCount: UInt64,
         )
@@ -46,6 +49,7 @@ pub contract NowggPuzzle {
             nftMinter: &NowggNFT.NFTMinter,
             nftProvider: &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic},
             puzzleId: String,
+            parentNftTypeId: String,
             childNftIds: [UInt64],
             metadata: {String: AnyStruct}
         )
@@ -54,9 +58,9 @@ pub contract NowggPuzzle {
     // Resource that allows other accounts to access the functionality related to puzzles
     pub resource PuzzleHelper: PuzzleHelperPublic, PuzzleHelperInterface {
 
-        pub fun borrowActivePuzzle(puzzleId: String): Puzzle? {
-            if NowggPuzzle.activePuzzles[puzzleId] != nil {
-                return NowggPuzzle.activePuzzles[puzzleId]
+        pub fun borrowPuzzle(puzzleId: String): Puzzle? {
+            if NowggPuzzle.allPuzzles[puzzleId] != nil {
+                return NowggPuzzle.allPuzzles[puzzleId]
             } else {
                 return nil
             }
@@ -65,25 +69,35 @@ pub contract NowggPuzzle {
         pub fun registerPuzzle(
             nftMinter: &NowggNFT.NFTMinter,
             puzzleId: String,
+            parentNftTypeId: String,
             childNftTypeIds: [String],
             maxCount: UInt64,
         ) {
             for childPuzzleTypeId in childNftTypeIds {
                 nftMinter.registerType(typeId: childPuzzleTypeId, maxCount: maxCount)
             }
-            nftMinter.registerType(typeId: puzzleId, maxCount: maxCount)
-            NowggPuzzle.activePuzzles[puzzleId] = Puzzle(puzzleId: puzzleId, childNftTypeIds: childNftTypeIds)
-            emit PuzzleRegistered(puzzleId: puzzleId, childNftTypeIds: childNftTypeIds)
+            nftMinter.registerType(typeId: parentNftTypeId, maxCount: maxCount)
+            NowggPuzzle.allPuzzles[puzzleId] = Puzzle(
+                puzzleId: puzzleId,
+                parentNftTypeId: parentNftTypeId,
+                childNftTypeIds: childNftTypeIds
+            )
+            emit PuzzleRegistered(
+                puzzleId: puzzleId,
+                parentNftTypeId: parentNftTypeId,
+                childNftTypeIds: childNftTypeIds
+            )
         }
 
         pub fun combinePuzzle(
             nftMinter: &NowggNFT.NFTMinter,
             nftProvider: &{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic},
             puzzleId: String,
+            parentNftTypeId: String,
             childNftIds: [UInt64],
             metadata: {String: AnyStruct}
         ) {
-            let puzzle = self.borrowActivePuzzle(puzzleId: puzzleId)!
+            let puzzle = self.borrowPuzzle(puzzleId: puzzleId)!
             let childNftTypes = puzzle.childNftTypeIds
 
             for nftId in childNftIds {
@@ -103,8 +117,7 @@ pub contract NowggPuzzle {
             }
             assert(childNftTypes.length == 0, message: "All required puzzle child NFTs not provided")
 
-            nftMinter.mintNFT(recipient: nftProvider, typeId: puzzleId, metaData: metadata)
-
+            nftMinter.mintNFT(recipient: nftProvider, typeId: parentNftTypeId, metaData: metadata)
             for nftId in childNftIds {
                 destroy <-nftProvider.withdraw(withdrawID: nftId)
             }
@@ -117,7 +130,7 @@ pub contract NowggPuzzle {
         self.PuzzleHelperStoragePath = /storage/NowggPuzzleHelperStorage
         self.PuzzleHelperPublicPath = /public/NowggPuzzleHelperPublic
 
-        self.activePuzzles = {}
+        self.allPuzzles = {}
 
         let puzzleHelper <-create PuzzleHelper()
         self.account.save(<-puzzleHelper, to: self.PuzzleHelperStoragePath)

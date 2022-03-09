@@ -278,21 +278,21 @@ export const updateItem = async (owner, itemId, price, platformAddress, platform
 	return sendTransaction({ name, args, signers });
 };
 
-export const registerPuzzle = async (parentNftTypeId, childNftTypeIds, maxCount) => {
+export const registerPuzzle = async (puzzleId, parentNftTypeId, childNftTypeIds, maxCount) => {
 	const name = "register_puzzle";
-	const args = [parentNftTypeId, childNftTypeIds, maxCount];
+	const args = [puzzleId, parentNftTypeId, childNftTypeIds, maxCount];
 	const signers = [await getNowggAdminAddress()]
 	return sendTransaction({ name, args, signers });
 };
 
-export const getActivePuzzle = async (puzzleId) => {
-	const name = "get_active_puzzle";
+export const getPuzzle = async (puzzleId) => {
+	const name = "get_puzzle";
 	const args = [await getNowggAdminAddress(), puzzleId];
 	return executeScript({ name, args });
 };
 
 
-export const combinePuzzle = async (parentNftTypeId, childNftIds, recipientAccount) => {
+export const combinePuzzle = async (puzzleId, parentNftTypeId, childNftIds, recipientAccount) => {
 	const name = "combine_puzzle";
 	const metadata = [
 		[
@@ -301,12 +301,12 @@ export const combinePuzzle = async (parentNftTypeId, childNftIds, recipientAccou
 		t.Dictionary({key: t.String, value: t.String})
 	]
 	const Admin = await getNowggAdminAddress()
-	const args = [[parentNftTypeId, t.String], [childNftIds, t.Array(t.UInt64)], metadata];
+	const args = [[puzzleId, t.String], [parentNftTypeId, t.String], [childNftIds, t.Array(t.UInt64)], metadata];
 	const signers = [Admin, recipientAccount];
 	return sendTransaction({ name, args, signers });
 };
 
-export const combinePuzzleAdmin = async (parentNftTypeId, childNftIds) => {
+export const combinePuzzleAdmin = async (puzzleId, parentNftTypeId, childNftIds) => {
 	const name = "combine_puzzle_admin";
 	const metadata = [
 		[
@@ -315,7 +315,7 @@ export const combinePuzzleAdmin = async (parentNftTypeId, childNftIds) => {
 		t.Dictionary({key: t.String, value: t.String})
 	]
 	const Admin = await getNowggAdminAddress()
-	const args = [[parentNftTypeId, t.String], [childNftIds, t.Array(t.UInt64)], metadata];
+	const args = [[puzzleId, t.String], [parentNftTypeId, t.String], [childNftIds, t.Array(t.UInt64)], metadata];
 	const signers = [Admin];
 	return sendTransaction({ name, args, signers });
 };

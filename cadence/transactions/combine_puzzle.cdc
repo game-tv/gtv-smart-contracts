@@ -6,9 +6,7 @@ import NowggPuzzle from "../contracts/NowggPuzzle.cdc"
 //
 // It must be run with the account that has minter stored at path /storage/NftMinter
 // and puzzle helper resource stored at /storage/NowggPuzzleHelperStorage
-
-
-transaction(parentNftTypeId: String, childNftIds: [UInt64], metadata: {String: AnyStruct}) {
+transaction(puzzleId: String, parentNftTypeId: String, childNftIds: [UInt64], metadata: {String: AnyStruct}) {
     
     let minter: &NowggNFT.NFTMinter
     let puzzleHelper: &NowggPuzzle.PuzzleHelper
@@ -18,33 +16,32 @@ transaction(parentNftTypeId: String, childNftIds: [UInt64], metadata: {String: A
         // We need a provider capability, but one is not provided by default so we create one if needed.
         let nowggNftsCollectionProviderPrivatePath = /private/NowggNFTsCollectionProvider
 
-
         // borrow a reference to the NFTMinter resource in storage
         self.minter = adminAccount.borrow<&NowggNFT.NFTMinter>(from: NowggNFT.MinterStoragePath)
             ?? panic("Could not borrow a reference to the NFT minter")
-        
         self.puzzleHelper = adminAccount.borrow<&NowggPuzzle.PuzzleHelper>(from: NowggPuzzle.PuzzleHelperStoragePath)
             ?? panic("Could not borrow a reference to the Puzzle Helper")
-            
 
-        if !recipientAccount.getCapability<&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
+        if !recipientAccount.getCapability
+        <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
         (nowggNftsCollectionProviderPrivatePath)!.check() {
-            recipientAccount.link<&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
+            recipientAccount.link
+            <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
             (nowggNftsCollectionProviderPrivatePath, target: NowggNFT.CollectionStoragePath)
-                
-            
         }
-        self.nowggNftProvider = (recipientAccount!.getCapability<&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>(nowggNftsCollectionProviderPrivatePath)!).borrow()!
+        self.nowggNftProvider = (recipientAccount!.getCapability
+        <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
+        (nowggNftsCollectionProviderPrivatePath)!).borrow()!
 
         assert(self.nowggNftProvider != nil, message: "Missing or mis-typed NowggNFT.Collection provider")
-        
     }
 
     execute {
         self.puzzleHelper.combinePuzzle(
             nftMinter: self.minter,
             nftProvider: self.nowggNftProvider,
-            puzzleId: parentNftTypeId,
+            puzzleId: puzzleId,
+            parentNftTypeId: parentNftTypeId,
             childNftIds: childNftIds,
             metadata: metadata
         )

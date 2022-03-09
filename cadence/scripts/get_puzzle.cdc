@@ -11,7 +11,7 @@ pub fun main(address: Address, puzzleId: String): AnyStruct {
         .borrow<&{NowggPuzzle.PuzzleHelperPublic}>()
         ?? panic("Could not borrow PuzzleHelperPublic")
 
-    let puzzle = puzzleHelper.borrowActivePuzzle(puzzleId: puzzleId)
+    let puzzle = puzzleHelper.borrowPuzzle(puzzleId: puzzleId)
         ?? panic("No such puzzle id in the collection")
 
     return puzzle

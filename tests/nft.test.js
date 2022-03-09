@@ -24,7 +24,7 @@ import {
 	removeItem,
 	updateItem,
 	registerPuzzle,
-	getActivePuzzle,
+	getPuzzle,
 	combinePuzzle,
 	combinePuzzleAdmin
 } from "../helpers/nowgg-nft";
@@ -356,10 +356,12 @@ describe("Contract tests", () => {
 
 	it("should be able to register a puzzle", async () => {
 		await deployContracts();
+		const puzzleId = "p";
 		const parentNftTypeId = "a";
 		const childNftTypeIds = ["b", "c"];
-		await shallPass(registerPuzzle(parentNftTypeId, childNftTypeIds, 10));
-		const puzzle = await getActivePuzzle(parentNftTypeId);
+		await shallPass(registerPuzzle(puzzleId, parentNftTypeId, childNftTypeIds, 10));
+		const puzzle = await getPuzzle(puzzleId);
+		expect(puzzle.parentNftTypeId).toBe(parentNftTypeId);
 		expect(puzzle.childNftTypeIds).toStrictEqual(childNftTypeIds);
 	});
 
@@ -367,27 +369,28 @@ describe("Contract tests", () => {
 		await deployContracts();
 		const Alice = await getAccountAddress('Alice');
 		await shallPass(setupStorefrontOnAccount(Alice));
+		const puzzleId = "p";
 		const parentNftTypeId = "a";
 		const childNftTypeIds = ["b", "c"];
-		await shallPass(registerPuzzle(parentNftTypeId, childNftTypeIds, 10));
+		await shallPass(registerPuzzle(puzzleId, parentNftTypeId, childNftTypeIds, 10));
 		await shallPass(mintAlreadyRegisteredNFT("b", Alice));
 		await shallPass(mintAlreadyRegisteredNFT("c", Alice));
-		await shallPass(combinePuzzle(parentNftTypeId, [0, 1], Alice));
-		const metadata= await getNowggNFTById(Alice, 2);
-		expect(metadata['test']).toStrictEqual('test');
+		await shallPass(combinePuzzle(puzzleId, parentNftTypeId, [0, 1], Alice));
+		const metadata = await getNowggNFTById(Alice, 2);
+		expect(metadata['test']).toBe('test');
 	});
 
 	it("should be able to combine a puzzle for Admin", async () => {
 		await deployContracts();
 		const NowggAdmin = await getNowggAdminAddress();
+		const puzzleId = "p";
 		const parentNftTypeId = "a";
 		const childNftTypeIds = ["b", "c"];
-		await shallPass(registerPuzzle(parentNftTypeId, childNftTypeIds, 10));
-		const puzzle = await getActivePuzzle(parentNftTypeId);
+		await shallPass(registerPuzzle(puzzleId, parentNftTypeId, childNftTypeIds, 10));
 		await shallPass(mintAlreadyRegisteredNFT("b", NowggAdmin))
 		await shallPass(mintAlreadyRegisteredNFT("c", NowggAdmin))
-		await shallPass(combinePuzzleAdmin(parentNftTypeId, [0, 1]));
-		const metadata= await getNowggNFTById(NowggAdmin, 2);
-		expect(metadata['test']).toStrictEqual('test');
+		await shallPass(combinePuzzleAdmin(puzzleId, parentNftTypeId, [0, 1]));
+		const metadata = await getNowggNFTById(NowggAdmin, 2);
+		expect(metadata['test']).toBe('test');
 	});
  })
