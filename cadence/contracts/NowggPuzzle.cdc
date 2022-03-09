@@ -88,7 +88,8 @@ pub contract NowggPuzzle {
 
             for nftId in childNftIds {
                 let nft = nftProvider.borrowNowggNFT(id: nftId)!
-                let nftTypeId = nft.getMetadata()["nftTypeId"] as? String!
+                let metadata = nft.getMetadata()!
+                let nftTypeId = metadata["nftTypeId"]! as! String
                 assert(childNftTypes.contains(nftTypeId), message: "Incorrect puzzle child NFT provided")
 
                 var index = 0

@@ -97,19 +97,19 @@ export const registerType = async (itemType, maxCount) => {
  * */
 export const mintAlreadyRegisteredNFT = async (itemType, recipient) => {
 	const NowggAdmin = await getNowggAdminAddress();
+    const metadata = [
+    	[
+    		{key: "test", value: "test1"},
+			{key: "nftTypeId", value: itemType}
+   		],
+   		t.Dictionary({key: t.String, value: t.String})
+ 	]
+    const name = "mint_nft";
+    const args = [[recipient, t.Address], [itemType, t.String], metadata];
+    const signers = [NowggAdmin];
 
-	const metadata = [
-    [
-      {key: "test", value: "test1"}
-    ],
-    t.Dictionary({key: t.String, value: t.String})
-  ]
-
-	const name = "mint_nft";
-	const args = [[recipient, t.Address], [itemType, t.String], metadata];
-	const signers = [NowggAdmin];
-
-	return sendTransaction({ name, args, signers });
+     return sendTransaction({ name, args, signers });
+	
 }
 
 /*
@@ -289,4 +289,33 @@ export const getActivePuzzle = async (puzzleId) => {
 	const name = "get_active_puzzle";
 	const args = [await getNowggAdminAddress(), puzzleId];
 	return executeScript({ name, args });
+};
+
+
+export const combinePuzzle = async (parentNftTypeId, childNftIds, recipientAccount) => {
+	const name = "combine_puzzle";
+	const metadata = [
+		[
+		{key: "test", value: "test"}
+		],
+		t.Dictionary({key: t.String, value: t.String})
+	]
+	const Admin = await getNowggAdminAddress()
+	const args = [[parentNftTypeId, t.String], [childNftIds, t.Array(t.UInt64)], metadata];
+	const signers = [Admin, recipientAccount];
+	return sendTransaction({ name, args, signers });
+};
+
+export const combinePuzzleAdmin = async (parentNftTypeId, childNftIds) => {
+	const name = "combine_puzzle_admin";
+	const metadata = [
+		[
+		{key: "test", value: "test"}
+		],
+		t.Dictionary({key: t.String, value: t.String})
+	]
+	const Admin = await getNowggAdminAddress()
+	const args = [[parentNftTypeId, t.String], [childNftIds, t.Array(t.UInt64)], metadata];
+	const signers = [Admin];
+	return sendTransaction({ name, args, signers });
 };
