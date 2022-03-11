@@ -10,7 +10,7 @@ pub contract NowggNFT: NonFungibleToken {
     pub event Minted(id: UInt64, typeId: String)
     pub event TypeRegistered(typeId: String)
     pub event TypeSoldOut(typeId: String)
-    pub event NftDestroyed(typeId: UInt64)
+    pub event NftDestroyed(id: UInt64)
 
     // Named Paths
     pub let CollectionStoragePath: StoragePath
@@ -76,7 +76,7 @@ pub contract NowggNFT: NonFungibleToken {
         }
 
         destroy() {
-            emit NftDestroyed(typeId: self.id)
+            emit NftDestroyed(id: self.id)
         }
     }
 
