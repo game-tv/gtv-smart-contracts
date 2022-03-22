@@ -22,16 +22,16 @@ transaction(puzzleId: String, parentNftTypeId: String, childNftIds: [UInt64], me
         self.puzzleHelper = adminAccount.borrow<&NowggPuzzle.PuzzleHelper>(from: NowggPuzzle.PuzzleHelperStoragePath)
             ?? panic("Could not borrow a reference to the Puzzle Helper")
 
-        if !recipientAccount.getCapability
+         // if !recipientAccount.getCapability
+        // <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
+        // (nowggNftsCollectionProviderPrivatePath)!.check() {
+        //     recipientAccount.link
+        //     <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
+        //     (nowggNftsCollectionProviderPrivatePath, target: NowggNFT.CollectionStoragePath)
+        // }
+        self.nowggNftProvider = (recipientAccount!.borrow
         <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
-        (nowggNftsCollectionProviderPrivatePath)!.check() {
-            recipientAccount.link
-            <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
-            (nowggNftsCollectionProviderPrivatePath, target: NowggNFT.CollectionStoragePath)
-        }
-        self.nowggNftProvider = (recipientAccount!.getCapability
-        <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
-        (nowggNftsCollectionProviderPrivatePath)!).borrow()!
+        (from: NowggNFT.CollectionStoragePath)!)
 
         assert(self.nowggNftProvider != nil, message: "Missing or mis-typed NowggNFT.Collection provider")
     }
