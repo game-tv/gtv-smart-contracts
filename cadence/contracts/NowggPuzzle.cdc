@@ -20,7 +20,7 @@ pub contract NowggPuzzle {
             if (NowggPuzzle.allPuzzles.keys.contains(puzzleId)) {
                 panic("Puzzle is already registered")
             }
-            if (childNftTypeIds.length > 1000) {
+            if (childNftTypeIds.length >= 1000) {
                 panic("Puzzle cannot have more than 1000 pieces")
             }
             self.puzzleId = puzzleId
@@ -40,7 +40,7 @@ pub contract NowggPuzzle {
         }
     }
 
-    pub resource interface PuzzleHelperInterface {   
+    pub resource interface PuzzleHelperInterface {
         pub fun registerPuzzle(
             nftMinter: &NowggNFT.NFTMinter,
             puzzleId: String,
@@ -76,6 +76,7 @@ pub contract NowggPuzzle {
             childNftTypeIds: [String],
             maxCount: UInt64,
         ) {
+            assert(childNftTypeIds.length < 1000, message: "childNftTypeIds must have less than 1000 elements")
             for childPuzzleTypeId in childNftTypeIds {
                 nftMinter.registerType(typeId: childPuzzleTypeId, maxCount: maxCount)
             }
@@ -100,6 +101,7 @@ pub contract NowggPuzzle {
             childNftIds: [UInt64],
             metadata: {String: AnyStruct}
         ) {
+            assert(childNftIds.length < 1000, message: "childNftIds must have less than 1000 elements")
             let puzzle = self.borrowPuzzle(puzzleId: puzzleId)!
             let childNftTypes = puzzle.childNftTypeIds
 
