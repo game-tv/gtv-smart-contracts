@@ -27,6 +27,14 @@ pub contract NowggPuzzle {
             self.parentNftTypeId = parentNftTypeId
             self.childNftTypeIds = childNftTypeIds
         }
+
+        pub fun getPuzzleInfo(): {String: AnyStruct} {
+            return {
+                "puzzleId": self.puzzleId,
+                "parentNftTypeId": self.parentNftTypeId,
+                "childNftTypeIds": self.childNftTypeIds
+            }
+        }
     }
 
     access(contract) var allPuzzles: {String: Puzzle}
