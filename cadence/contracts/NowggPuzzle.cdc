@@ -12,13 +12,16 @@ pub contract NowggPuzzle {
     pub let PuzzleHelperPublicPath: PublicPath
 
     pub struct Puzzle {
-        pub let puzzleId: String
-        pub let parentNftTypeId: String
-        pub let childNftTypeIds: [String]
+        access(contract) let puzzleId: String
+        access(contract) let parentNftTypeId: String
+        access(contract) let childNftTypeIds: [String]
 
         init(puzzleId: String, parentNftTypeId: String, childNftTypeIds: [String]) {
             if (NowggPuzzle.allPuzzles.keys.contains(puzzleId)) {
                 panic("Puzzle is already registered")
+            }
+            if (childNftTypeIds.length > 1000) {
+                panic("Puzzle cannot have more than 1000 pieces")
             }
             self.puzzleId = puzzleId
             self.parentNftTypeId = parentNftTypeId
