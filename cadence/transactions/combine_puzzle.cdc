@@ -13,22 +13,13 @@ transaction(puzzleId: String, parentNftTypeId: String, childNftIds: [UInt64], me
     let nowggNftProvider: &NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}
 
     prepare(adminAccount: AuthAccount, recipientAccount: AuthAccount) {
-        // We need a provider capability, but one is not provided by default so we create one if needed.
-        let nowggNftsCollectionProviderPrivatePath = /private/NowggNFTsCollectionProvider
-
         // borrow a reference to the NFTMinter resource in storage
         self.minter = adminAccount.borrow<&NowggNFT.NFTMinter>(from: NowggNFT.MinterStoragePath)
             ?? panic("Could not borrow a reference to the NFT minter")
+
         self.puzzleHelper = adminAccount.borrow<&NowggPuzzle.PuzzleHelper>(from: NowggPuzzle.PuzzleHelperStoragePath)
             ?? panic("Could not borrow a reference to the Puzzle Helper")
 
-         // if !recipientAccount.getCapability
-        // <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
-        // (nowggNftsCollectionProviderPrivatePath)!.check() {
-        //     recipientAccount.link
-        //     <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
-        //     (nowggNftsCollectionProviderPrivatePath, target: NowggNFT.CollectionStoragePath)
-        // }
         self.nowggNftProvider = (recipientAccount!.borrow
         <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
         (from: NowggNFT.CollectionStoragePath)!)
