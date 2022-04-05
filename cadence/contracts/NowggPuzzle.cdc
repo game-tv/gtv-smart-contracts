@@ -1,5 +1,5 @@
-import NonFungibleToken from "./NonFungibleToken.cdc"
-import NowggNFT from "./NowggNFT.cdc"
+import NonFungibleToken from 0x1d7e57aa55817448
+import NowggNFT from 0x85b8bbf926dcddfa
 
 
 pub contract NowggPuzzle {
