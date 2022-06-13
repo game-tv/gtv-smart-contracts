@@ -4,8 +4,12 @@ transaction(listingResourceIDs: [UInt64]) {
     let storefront: &NFTStoreFront.Storefront{NFTStoreFront.StorefrontManager}
 
     prepare(account: AuthAccount) {
-        self.storefront = account.borrow<&NFTStoreFront.Storefront{NFTStoreFront.StorefrontManager}>(from: NFTStoreFront.StorefrontStoragePath)
-            ?? panic("Missing or mis-typed NFTStoreFront.Storefront")
+        assert(
+            account.type(at: NFTStoreFront.StorefrontStoragePath) != nil,
+            message: "Missing or mis-typed NFTStoreFront.Storefront"
+        )
+        self.storefront = account.borrow<&NFTStoreFront.Storefront{NFTStoreFront.StorefrontManager}>
+        (from: NFTStoreFront.StorefrontStoragePath)
     }
 
     execute {

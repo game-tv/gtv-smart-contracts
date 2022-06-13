@@ -13,18 +13,25 @@ transaction(puzzleId: String, parentNftTypeId: String, childNftIds: [UInt64], me
     let nowggNftProvider: &NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}
 
     prepare(adminAccount: AuthAccount, recipientAccount: AuthAccount) {
-        // borrow a reference to the NFTMinter resource in storage
+        assert(
+            adminAccount.type(at: NowggNFT.MinterStoragePath) != nil,
+            message: "Could not borrow a reference to the NFT minter"
+        )
         self.minter = adminAccount.borrow<&NowggNFT.NFTMinter>(from: NowggNFT.MinterStoragePath)
-            ?? panic("Could not borrow a reference to the NFT minter")
 
+        assert(
+            adminAccount.type(at: NowggPuzzle.PuzzleHelperStoragePath) != nil,
+            message: "Could not borrow a reference to the Puzzle Helper"
+        )
         self.puzzleHelper = adminAccount.borrow<&NowggPuzzle.PuzzleHelper>(from: NowggPuzzle.PuzzleHelperStoragePath)
-            ?? panic("Could not borrow a reference to the Puzzle Helper")
 
-        self.nowggNftProvider = (recipientAccount!.borrow
+        assert(
+            recipientAccount.type(at: NowggNFT.CollectionStoragePath),
+            message: "Missing or mis-typed NowggNFT.Collection provider"
+        )
+        self.nowggNftProvider = recipientAccount!.borrow
         <&NowggNFT.Collection{NonFungibleToken.Provider, NonFungibleToken.CollectionPublic, NowggNFT.NowggNFTCollectionPublic}>
-        (from: NowggNFT.CollectionStoragePath)!)
-
-        assert(self.nowggNftProvider != nil, message: "Missing or mis-typed NowggNFT.Collection provider")
+        (from: NowggNFT.CollectionStoragePath)
     }
 
     execute {

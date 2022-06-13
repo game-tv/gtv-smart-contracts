@@ -5,8 +5,8 @@ import NowggNFT from "../contracts/NowggNFT.cdc"
 import NFTStoreFront from "../contracts/NFTStoreFront.cdc"
 
 pub fun getOrCreateStorefront(account: AuthAccount): &NFTStoreFront.Storefront {
-    if let storefrontRef = account.borrow<&NFTStoreFront.Storefront>(from: NFTStoreFront.StorefrontStoragePath) {
-        return storefrontRef
+    if account.type(at: NFTStoreFront.StorefrontStoragePath) != nil {
+        return account.borrow<&NFTStoreFront.Storefront>(from: NFTStoreFront.StorefrontStoragePath)
     }
 
     let storefront <- NFTStoreFront.createStorefront()

@@ -26,8 +26,11 @@ transaction(saleItemID: UInt64, saleItemPrice: UFix64) {
         
         assert(self.NowggNFTProvider.borrow() != nil, message: "Missing or mis-typed FlowToken.Collection provider")
 
+        assert(
+            account.type(at: NFTStoreFront.StorefrontStoragePath) != nil,
+            message: "Missing or mis-typed NFTStorefront Storefront"
+        )
         self.storefront = account.borrow<&NFTStoreFront.Storefront>(from: NFTStoreFront.StorefrontStoragePath)
-            ?? panic("Missing or mis-typed NFTStorefront Storefront")
     }
 
     execute {

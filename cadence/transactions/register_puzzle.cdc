@@ -7,20 +7,22 @@ import NowggPuzzle from "../contracts/NowggPuzzle.cdc"
 // It must be run with the account that has minter stored at path /storage/NftMinter
 // and puzzle helper resource stored at /storage/NowggPuzzleHelperStorage
 
-
 transaction(puzzleId: String, parentNftTypeId: String, childNftTypeIds: [String], maxCount: UInt64) {
     
     let minter: &NowggNFT.NFTMinter
     let puzzleHelper: &NowggPuzzle.PuzzleHelper
 
     prepare(signer: AuthAccount) {
-
-        // borrow a reference to the NFTMinter resource in storage
+        assert(
+            signer.type(at: NowggNFT.MinterStoragePath) != nil,
+            message: "Could not borrow a reference to the NFT minter"
+        )
         self.minter = signer.borrow<&NowggNFT.NFTMinter>(from: NowggNFT.MinterStoragePath)
-            ?? panic("Could not borrow a reference to the NFT minter")
-        
+        assert(
+            signer.type(at: NowggPuzzle.PuzzleHelperStoragePath) != nil,
+            message: "Could not borrow a reference to the Puzzle Helper"
+        )
         self.puzzleHelper = signer.borrow<&NowggPuzzle.PuzzleHelper>(from: NowggPuzzle.PuzzleHelperStoragePath)
-            ?? panic("Could not borrow a reference to the Puzzle Helper")
     }
 
     execute {
@@ -31,4 +33,5 @@ transaction(puzzleId: String, parentNftTypeId: String, childNftTypeIds: [String]
             childNftTypeIds: childNftTypeIds,
             maxCount: maxCount
         )
-    }}
+    }
+}
