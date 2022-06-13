@@ -12,11 +12,9 @@ transaction(typeID: String, maxCount: UInt64) {
 
     prepare(signer: AuthAccount) {
 
-        assert(
-            signer.type(at: NowggNFT.MinterStoragePath) != nil,
-            message: "Could not borrow a reference to the NFT minter"
-        )
+        // borrow a reference to the NFTMinter resource in storage
         self.minter = signer.borrow<&NowggNFT.NFTMinter>(from: NowggNFT.MinterStoragePath)
+            ?? panic("Could not borrow a reference to the NFT minter")
     }
 
     execute {

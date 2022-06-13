@@ -23,8 +23,9 @@ transaction(saleOfferResourceIDs: [UInt64], storefrontAddress: Address) {
 
         self.saleOffers = []
 
-        assert(account.type(at: /storage/flowTokenVault) != nil, message: "NM_FLOW_002")
         let mainFlowTokenVault = account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("NM_FLOW_002")
+        
 
         for saleOfferResourceID in saleOfferResourceIDs {
             let saleOffer = self.storefront.borrowListing(listingResourceID: saleOfferResourceID)
@@ -35,15 +36,16 @@ transaction(saleOfferResourceIDs: [UInt64], storefrontAddress: Address) {
 
         self.paymentVault <- mainFlowTokenVault.withdraw(amount: price)
 
-        assert(account.type(at: NowggNFT.CollectionStoragePath) != nil, message: "NM_FLOW_004")
+
         self.NowggNFTCollection = account.borrow<&NowggNFT.Collection{NonFungibleToken.Receiver}>(
             from: NowggNFT.CollectionStoragePath
-        )
+        ) ?? panic("NM_FLOW_004")
     }
 
     execute {
         var index = 0
         for saleOffer in self.saleOffers {
+
             let tempVault <- self.paymentVault.withdraw(amount: saleOffer.getDetails().salePrice)
             let item <- saleOffer.purchase(payment: <-tempVault)
 
@@ -53,5 +55,7 @@ transaction(saleOfferResourceIDs: [UInt64], storefrontAddress: Address) {
             index = index + 1
         }
         destroy self.paymentVault
+
+
     }
 }

@@ -6,7 +6,7 @@ import NowggNFT from "../contracts/NowggNFT.cdc"
 transaction {
     prepare(signer: AuthAccount) {
         // if the account doesn't already have a collection
-        if signer.type(at: NowggNFT.CollectionStoragePath) == nil {
+        if signer.borrow<&NowggNFT.Collection>(from: NowggNFT.CollectionStoragePath) == nil {
 
             // create a new empty collection
             let collection <- NowggNFT.createEmptyCollection()

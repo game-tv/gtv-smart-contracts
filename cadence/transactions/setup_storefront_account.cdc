@@ -6,7 +6,7 @@ transaction {
     prepare(acct: AuthAccount) {
 
         // If the account doesn't already have a Storefront
-        if acct.type(at: NFTStoreFront.StorefrontStoragePath) == nil {
+        if acct.borrow<&NFTStoreFront.Storefront>(from: NFTStoreFront.StorefrontStoragePath) == nil {
 
             // Create a new empty .Storefront
             let storefront <- NFTStoreFront.createStorefront() as @NFTStoreFront.Storefront

@@ -25,20 +25,14 @@ transaction(saleOfferResourceID: UInt64, storefrontAddress: Address) {
         
         let price = self.saleOffer.getDetails().salePrice
 
-        assert(
-            account.type(at: /storage/flowTokenVault) != nil,
-            message: "Cannot borrow FlowToken vault from account storage"
-        )
         let mainFlowTokenVault = account.borrow<&FlowToken.Vault>(from: /storage/flowTokenVault)
+            ?? panic("Cannot borrow FlowToken vault from account storage")
+        
         self.paymentVault <- mainFlowTokenVault.withdraw(amount: price)
 
-        assert(
-            account.type(at: NowggNFT.CollectionStoragePath) != nil,
-            message: "Cannot borrow NowggNFT collection receiver from account"
-        )
         self.NowggNFTCollection = account.borrow<&NowggNFT.Collection{NonFungibleToken.Receiver}>(
             from: NowggNFT.CollectionStoragePath
-        )
+        ) ?? panic("Cannot borrow NowggNFT collection receiver from account")
     }
 
     execute {
